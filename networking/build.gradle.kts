@@ -1,5 +1,4 @@
 import com.vanniktech.maven.publish.SonatypeHost
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
@@ -8,6 +7,8 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.vanniktech.mavenPublish)
+
+    alias(libs.plugins.kotlin.serialization)
 }
 
 group = "io.github.kotlin"
@@ -33,7 +34,7 @@ kotlin {
         }
     }
 
-    linuxX64()
+
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -56,15 +57,23 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                //put your multiplatform dependencies here
-            }
+        val desktopMain by getting
+
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(libs.kotlin.test)
-            }
+
+        commonMain.dependencies {
+            implementation(libs.bundles.ktor)
+            implementation(libs.kotlinx.serialization.json)
+        }
+
+        desktopMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+
+        nativeMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
     }
 }

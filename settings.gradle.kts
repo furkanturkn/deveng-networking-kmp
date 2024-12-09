@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "deveng-networking-kmp"
 include(":networking")
+include(":sample")
