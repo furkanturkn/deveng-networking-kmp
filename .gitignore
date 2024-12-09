@@ -310,4 +310,5 @@ obj/
 
 !/gradle/wrapper/gradle-wrapper.jar
 
+gradle.properties
 # End of

@@ -16,13 +16,5 @@ class MainViewModel : ViewModel() {
     val error: DevengException
         get() = _error ?: DevengException(DevengUiError.UnknownError("Unknown error occurred."))
 
-    init {
-        viewModelScope.launch {
-            DevengNetworkingModule.error.collect {
-                _error = it
-            }
-
-        }
-    }
 
 }

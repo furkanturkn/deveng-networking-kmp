@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "io.github.kotlin"
+group = "global.deveng"
 version = "1.0.0"
 
 kotlin {
@@ -91,31 +91,35 @@ mavenPublishing {
 
     signAllPublications()
 
-    coordinates(group.toString(), "library", version.toString())
+    coordinates(
+        group.toString(),
+        "networking-kmp",
+        version.toString()
+    )
 
     pom {
-        name = "My library"
-        description = "A library."
+        name = "Deveng Networking KMP"
+        description = "Network library for Deveng projects"
         inceptionYear = "2024"
-        url = "https://github.com/kotlin/multiplatform-library-template/"
+        url = "https://github.com/furkanturkn/deveng-networking-kmp/"
         licenses {
             license {
-                name = "XXX"
-                url = "YYY"
-                distribution = "ZZZ"
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                distribution = "http://www.apache.org/licenses/LICENSE-2.0.txt"
             }
         }
         developers {
             developer {
-                id = "XXX"
-                name = "YYY"
-                url = "ZZZ"
+                id = "furkanturkn"
+                name = "Furkan Türkan"
+                url = "https://github.com/furkanturkn/"
             }
         }
         scm {
-            url = "XXX"
-            connection = "YYY"
-            developerConnection = "ZZZ"
+            url = "https://github.com/furkanturkn/deveng-networking-kmp/"
+            connection = "scm:git:git://github.com/furkanturkn/deveng-networking-kmp.git"
+            developerConnection = "scm:git:ssh://git@github.com/furkanturkn/deveng-networking-kmp.git"
         }
     }
 }

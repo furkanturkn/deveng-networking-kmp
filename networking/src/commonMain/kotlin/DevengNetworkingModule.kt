@@ -27,10 +27,6 @@ object DevengNetworkingModule {
     }
 
 
-    // Channel to emit errors
-    val _error: Channel<DevengException> = Channel()
-    val error: Flow<DevengException> = _error.receiveAsFlow()
-
     suspend inline fun <reified T, reified R> sendRequest(
         endpoint: String,
         requestBody: T? = null,
@@ -52,17 +48,13 @@ object DevengNetworkingModule {
                 }
                 else -> {
                     val error = handleHttpException(locale, response.status)
-                    val uiError = DevengException(error)
-                    _error.send(uiError)
-                    Result.failure(uiError)
+                    throw DevengException(error)
                 }
             }
         } catch (e: Exception) {
             print(e)
             val error = handleNetworkException(locale, e)
-            val uiError = DevengException(error)
-            _error.send(uiError)
-            Result.failure(uiError)
+            throw DevengException(error)
         }
     }
 

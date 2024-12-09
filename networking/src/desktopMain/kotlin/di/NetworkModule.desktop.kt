@@ -1,4 +1,4 @@
-package networking.data.di
+package networking.di
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp

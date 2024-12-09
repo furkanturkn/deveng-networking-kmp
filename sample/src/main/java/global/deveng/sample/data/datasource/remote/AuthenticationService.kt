@@ -16,7 +16,7 @@ class AuthenticationService {
         username: String,
         password: String
     ): AuthenticationResponse? {
-        DevengNetworkingModule.setBaseUrl("https://burzemanagementapi.sekompos.com/api")
+        DevengNetworkingModule.setBaseUrl("https://...")
         val requestBody = AuthenticationRequest(username, password)
 
         val result = DevengNetworkingModule.sendRequest<AuthenticationRequest, AuthenticationResponse>(
