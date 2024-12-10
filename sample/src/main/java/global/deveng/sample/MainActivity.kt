@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import error_handling.DevengException
 import global.deveng.sample.data.datasource.remote.AuthenticationService
 import global.deveng.sample.data.repository.AuthenticationRepositoryImpl
 import global.deveng.sample.domain.model.Authentication
@@ -33,12 +34,16 @@ class MainActivity : ComponentActivity() {
         )
 
         fun test() {
-            GlobalScope.launch {
-                a = authenticationRepositoryImpl.authenticate(
-                    "admin",
-                    "1"
-                )
-                println(a?.token)
+            try{
+                GlobalScope.launch {
+                    a = authenticationRepositoryImpl.authenticate(
+                        "admin",
+                        "1"
+                    )
+                    println(a?.token)
+                }
+            } catch (e: DevengException) {
+                println(e.message)
             }
 
         }

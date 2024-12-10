@@ -25,4 +25,4 @@ sealed class DevengUiError(val errorMessage: String) : Throwable(errorMessage) {
     }
 }
 
-class DevengException(val error: DevengUiError) : Throwable(error.message)
+class DevengException(val error: DevengUiError) : Exception(error.message)
