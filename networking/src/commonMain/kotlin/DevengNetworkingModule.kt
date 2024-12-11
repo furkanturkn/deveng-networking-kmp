@@ -2,16 +2,13 @@ package networking
 
 import error_handling.DevengException
 import error_handling.DevengUiError
+import error_handling.ErrorKey
 import io.ktor.client.call.body
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.receiveAsFlow
 import networking.di.NetworkModule
-import error_handling.ErrorKey
 import networking.localization.Locale
 
 
@@ -46,6 +43,7 @@ object DevengNetworkingModule {
                     val responseBody: R = response.body()
                     Result.success(responseBody)
                 }
+
                 else -> {
                     val error = handleHttpException(locale, response.status)
                     throw DevengException(error)
@@ -70,7 +68,11 @@ object DevengNetworkingModule {
     }
 
     fun handleNetworkException(locale: Locale, cause: Throwable): DevengUiError {
-        return DevengUiError.createError(ErrorKey.NETWORK_ERROR, locale, cause.message ?: "Unknown cause")
+        return DevengUiError.createError(
+            ErrorKey.NETWORK_ERROR,
+            locale,
+            cause.message ?: "Unknown cause"
+        )
     }
 
 }

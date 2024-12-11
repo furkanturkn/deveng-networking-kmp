@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
         )
 
         fun test() {
-            try{
+            try {
                 GlobalScope.launch {
                     a = authenticationRepositoryImpl.authenticate(
                         "admin",

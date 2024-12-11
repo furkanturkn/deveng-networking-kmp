@@ -20,11 +20,12 @@ class AuthenticationService {
         val requestBody = AuthenticationRequest(username, password)
 
         try {
-            val result = DevengNetworkingModule.sendRequest<AuthenticationRequest, AuthenticationResponse>(
-                endpoint = "/Authentication/login",
-                requestBody = requestBody,
-                requestMethod = HttpMethod.Post
-            )
+            val result =
+                DevengNetworkingModule.sendRequest<AuthenticationRequest, AuthenticationResponse>(
+                    endpoint = "/Authentication/login",
+                    requestBody = requestBody,
+                    requestMethod = HttpMethod.Post
+                )
 
             return result.getOrElse {
                 null

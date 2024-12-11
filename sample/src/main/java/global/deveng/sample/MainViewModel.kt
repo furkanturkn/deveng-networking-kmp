@@ -1,14 +1,11 @@
 package global.deveng.sample
 
-import error_handling.DevengException
-import error_handling.DevengUiError
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-import networking.DevengNetworkingModule
+import error_handling.DevengException
+import error_handling.DevengUiError
 
 class MainViewModel : ViewModel() {
 

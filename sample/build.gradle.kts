@@ -53,7 +53,7 @@ android {
 
 dependencies {
 
-    implementation (project(":networking"))
+    implementation(project(":networking"))
 
     implementation("junit:junit:4.13.2")
     implementation("androidx.test.ext:junit:1.2.1")

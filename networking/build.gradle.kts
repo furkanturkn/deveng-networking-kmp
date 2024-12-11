@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "global.deveng"
-version = "1.0.0"
+version = "1.0.1"
 
 kotlin {
     jvm("desktop")
@@ -119,7 +119,8 @@ mavenPublishing {
         scm {
             url = "https://github.com/furkanturkn/deveng-networking-kmp/"
             connection = "scm:git:git://github.com/furkanturkn/deveng-networking-kmp.git"
-            developerConnection = "scm:git:ssh://git@github.com/furkanturkn/deveng-networking-kmp.git"
+            developerConnection =
+                "scm:git:ssh://git@github.com/furkanturkn/deveng-networking-kmp.git"
         }
     }
 }
