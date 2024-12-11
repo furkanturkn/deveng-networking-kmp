@@ -5,14 +5,14 @@ import error_handling.ErrorKey
 object LocalizationManager {
 
     private val translations: Map<Locale, Map<ErrorKey, String>> = mapOf(
-        Locale.ENGLISH to mapOf(
+        Locale.EN to mapOf(
             ErrorKey.UNAUTHORIZED to "Unauthorized access",
             ErrorKey.NOT_FOUND to "Resource not found",
             ErrorKey.SERVER_ERROR to "Server error occurred",
             ErrorKey.UNKNOWN_ERROR to "Unknown error: %s",
             ErrorKey.NETWORK_ERROR to "Network error: %s"
         ),
-        Locale.TURKISH to mapOf(
+        Locale.TR to mapOf(
             ErrorKey.UNAUTHORIZED to "Yetkisiz erişim",
             ErrorKey.NOT_FOUND to "Kaynak bulunamadı",
             ErrorKey.SERVER_ERROR to "Sunucu hatası meydana geldi",
@@ -22,7 +22,7 @@ object LocalizationManager {
     )
 
     fun getLocalizedError(locale: Locale, errorKey: ErrorKey, vararg formatArgs: Any): String {
-        val translationMap = translations[locale] ?: translations[Locale.ENGLISH]!!
+        val translationMap = translations[locale] ?: translations[Locale.EN]!!
         val template = translationMap[errorKey] ?: "Unknown error"
 
         return if (formatArgs.isNotEmpty()) {
