@@ -1,9 +1,9 @@
 package global.deveng.sample.data.datasource.remote
 
 import global.deveng.sample.data.datasource.remote.model.response.AuthenticationResponse
-import io.ktor.http.HttpMethod
 import kotlinx.serialization.Serializable
 import networking.DevengNetworkingModule
+import networking.util.DevengHttpMethod
 
 @Serializable
 data class AuthenticationRequest(
@@ -24,7 +24,7 @@ class AuthenticationService {
                 DevengNetworkingModule.sendRequest<AuthenticationRequest, AuthenticationResponse>(
                     endpoint = "/Authentication/login",
                     requestBody = requestBody,
-                    requestMethod = HttpMethod.Post
+                    requestMethod = DevengHttpMethod.POST
                 )
 
             return result.getOrElse {

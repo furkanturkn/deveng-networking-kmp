@@ -6,12 +6,13 @@ import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import networking.di.CoreModule
 import networking.di.NetworkModule
 import networking.localization.Locale
+import networking.util.DevengHttpMethod
+import networking.util.toKtorHttpMethod
 
 object DevengNetworkingModule {
     var BASE_URL: String = ""
@@ -31,13 +32,13 @@ object DevengNetworkingModule {
     suspend inline fun <reified T, reified R> sendRequest(
         endpoint: String,
         requestBody: T? = null,
-        requestMethod: HttpMethod
+        requestMethod: DevengHttpMethod
     ): Result<R> {
         return try {
             val response: HttpResponse = client.request(
                 urlString = "$BASE_URL$endpoint"
             ) {
-                method = requestMethod
+                method = requestMethod.toKtorHttpMethod()
                 if (requestBody != null) {
                     contentType(ContentType.Application.Json)
                     setBody(requestBody)

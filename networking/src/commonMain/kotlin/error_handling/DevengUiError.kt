@@ -12,7 +12,11 @@ sealed class DevengUiError(val errorMessage: String) : Throwable(errorMessage) {
     class UnknownError(message: String) : DevengUiError(message)
 
     companion object {
-        fun createError(key: ErrorKey, locale: Locale, vararg args: Any): DevengUiError {
+        fun createError(
+            key: ErrorKey,
+            locale: Locale,
+            vararg args: Any
+        ): DevengUiError {
             val localizedMessage = LocalizationManager.getLocalizedError(locale, key, *args)
             return when (key) {
                 ErrorKey.UNAUTHORIZED -> UnauthorizedError(localizedMessage)
