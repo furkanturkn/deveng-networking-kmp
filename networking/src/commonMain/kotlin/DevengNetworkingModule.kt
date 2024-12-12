@@ -1,7 +1,10 @@
 package networking
 
+import di.NetworkModule
 import error_handling.DevengException
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -9,40 +12,51 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import networking.di.CoreModule
-import networking.di.NetworkModule
+import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
 import networking.util.DevengHttpMethod
 import networking.util.toKtorHttpMethod
 
-object DevengNetworkingModule {
-    var BASE_URL: String = ""
+public object DevengNetworkingModule {
+    public var baseUrl: String = ""
 
-    val client = NetworkModule.httpClient
+    public var token: String = ""
 
-    val exceptionHandler = CoreModule.exceptionHandler
+    public val client: HttpClient = NetworkModule.httpClient
 
-    fun setBaseUrl(baseUrl: String) {
-        BASE_URL = baseUrl
+    public val exceptionHandler: ExceptionHandler = CoreModule.exceptionHandler
+
+    public fun setApiBaseUrl(baseUrl: String) {
+        this.baseUrl = baseUrl
     }
 
-    fun setLocale(locale: Locale) {
+    public fun setBearerToken(token: String) {
+        this.token = token
+    }
+
+    public fun setLocale(locale: Locale) {
         exceptionHandler.locale = locale
     }
 
-    suspend inline fun <reified T, reified R> sendRequest(
+    public suspend inline fun <reified T, reified R> sendRequest(
         endpoint: String,
         requestBody: T? = null,
         requestMethod: DevengHttpMethod
     ): Result<R> {
         return try {
             val response: HttpResponse = client.request(
-                urlString = "$BASE_URL$endpoint"
+                urlString = "$baseUrl$endpoint"
             ) {
+                headers {
+                    append("Authorization", "Bearer $token")
+                }
                 method = requestMethod.toKtorHttpMethod()
+
                 if (requestBody != null) {
                     contentType(ContentType.Application.Json)
                     setBody(requestBody)
                 }
+
             }
 
             when {

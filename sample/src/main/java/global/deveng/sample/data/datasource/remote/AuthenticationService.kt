@@ -16,7 +16,7 @@ class AuthenticationService {
         username: String,
         password: String
     ): AuthenticationResponse? {
-        DevengNetworkingModule.setBaseUrl("https://...")
+        DevengNetworkingModule.setApiBaseUrl("https://...")
         val requestBody = AuthenticationRequest(username, password)
 
         try {

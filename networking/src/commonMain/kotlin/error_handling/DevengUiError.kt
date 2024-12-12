@@ -3,16 +3,16 @@ package error_handling
 import networking.localization.Locale
 import networking.localization.LocalizationManager
 
-sealed class DevengUiError(val errorMessage: String) : Throwable(errorMessage) {
-    class HttpError(message: String) : DevengUiError(message)
-    class NetworkError(message: String) : DevengUiError(message)
-    class UnauthorizedError(message: String) : DevengUiError(message)
-    class NotFoundError(message: String) : DevengUiError(message)
-    class ServerError(message: String) : DevengUiError(message)
-    class UnknownError(message: String) : DevengUiError(message)
+public sealed class DevengUiError(errorMessage: String) : Throwable(errorMessage) {
+    internal class HttpError(message: String) : DevengUiError(message)
+    internal class NetworkError(message: String) : DevengUiError(message)
+    internal class UnauthorizedError(message: String) : DevengUiError(message)
+    internal class NotFoundError(message: String) : DevengUiError(message)
+    internal class ServerError(message: String) : DevengUiError(message)
+    public class UnknownError(message: String) : DevengUiError(message)
 
-    companion object {
-        fun createError(
+    internal companion object {
+        internal fun createError(
             key: ErrorKey,
             locale: Locale,
             vararg args: Any
@@ -29,4 +29,4 @@ sealed class DevengUiError(val errorMessage: String) : Throwable(errorMessage) {
     }
 }
 
-class DevengException(val error: DevengUiError) : Exception(error.message)
+public class DevengException(error: DevengUiError) : Exception(error.message)

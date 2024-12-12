@@ -16,25 +16,6 @@ version = "1.0.3"
 
 kotlin {
     jvm("desktop")
-    androidTarget {
-        publishLibraryVariants("release")
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_1_8)
-        }
-    }
-
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "networking"
-            isStatic = true
-        }
-    }
-
-
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -55,6 +36,28 @@ kotlin {
         }
         binaries.executable()
     }
+
+    androidTarget {
+        publishLibraryVariants("release")
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_1_8)
+        }
+    }
+
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "networking"
+            isStatic = true
+        }
+    }
+
+
+    explicitApi()
+
 
     sourceSets {
         val desktopMain by getting

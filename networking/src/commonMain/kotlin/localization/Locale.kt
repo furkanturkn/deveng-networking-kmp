@@ -1,6 +1,6 @@
 package networking.localization;
 
-enum class Locale {
+public enum class Locale {
     EN,
     TR;
 }

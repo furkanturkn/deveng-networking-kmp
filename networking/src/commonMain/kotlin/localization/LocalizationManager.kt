@@ -2,7 +2,7 @@ package networking.localization
 
 import error_handling.ErrorKey
 
-object LocalizationManager {
+internal object LocalizationManager {
 
     private val translations: Map<Locale, Map<ErrorKey, String>> = mapOf(
         Locale.EN to mapOf(

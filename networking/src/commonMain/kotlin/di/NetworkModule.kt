@@ -1,7 +1,7 @@
-package networking.di
+package di
 
 import io.ktor.client.HttpClient
 
-expect object NetworkModule {
+internal expect object NetworkModule {
     val httpClient: HttpClient
 }

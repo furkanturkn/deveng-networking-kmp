@@ -5,7 +5,7 @@ import error_handling.ErrorKey
 import io.ktor.http.HttpStatusCode
 import networking.localization.Locale
 
-object ExceptionHandlerImpl : ExceptionHandler {
+internal object ExceptionHandlerImpl : ExceptionHandler {
     override var locale: Locale = Locale.TR
 
     override fun handleHttpException(status: HttpStatusCode): DevengUiError {

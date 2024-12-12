@@ -1,6 +1,6 @@
 package error_handling;
 
-enum class ErrorKey {
+internal enum class ErrorKey {
     UNAUTHORIZED,
     NOT_FOUND,
     SERVER_ERROR,

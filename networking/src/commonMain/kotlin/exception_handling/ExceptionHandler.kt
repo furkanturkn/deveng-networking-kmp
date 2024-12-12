@@ -4,14 +4,14 @@ import error_handling.DevengUiError
 import io.ktor.http.HttpStatusCode
 import networking.localization.Locale
 
-interface ExceptionHandler {
-    var locale: Locale
+public interface ExceptionHandler {
+    public var locale: Locale
 
-    fun handleHttpException(
+    public fun handleHttpException(
         status: HttpStatusCode
     ): DevengUiError
 
-    fun handleNetworkException(
+    public fun handleNetworkException(
         cause: Throwable
     ): DevengUiError
 
