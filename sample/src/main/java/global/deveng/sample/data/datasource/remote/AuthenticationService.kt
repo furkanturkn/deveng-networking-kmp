@@ -11,25 +11,39 @@ data class AuthenticationRequest(
     val password: String
 )
 
+@Serializable
+data class CurrencySymbolsResponse(
+    val id: Int,
+    val symbolId: String,
+    val lastUpdateTime: String,
+    val isPinned: Boolean,
+    val isListed: Boolean,
+    val manipulatedPercentage: Double,
+    val manipulatedValue: Double,
+    val manipulatedCoefficients: Double,
+    val symbolTypeId: Double,
+    val symbolTypeName: String
+)
+
 class AuthenticationService {
     suspend fun authenticate(
         username: String,
         password: String
     ): AuthenticationResponse? {
-        DevengNetworkingModule.setApiBaseUrl("https://...")
         val requestBody = AuthenticationRequest(username, password)
 
         try {
             val result =
-                DevengNetworkingModule.sendRequest<AuthenticationRequest, AuthenticationResponse>(
-                    endpoint = "/Authentication/login",
-                    requestBody = requestBody,
-                    requestMethod = DevengHttpMethod.POST
+                DevengNetworkingModule.sendRequest<Unit, List<CurrencySymbolsResponse>?>(
+                    endpoint = "/Symbols/all/{symbolTypeId}",
+                    requestBody = Unit,
+                    requestMethod = DevengHttpMethod.GET,
+                    pathParameters = mapOf("symbolTypeId" to "1")
                 )
 
-            return result.getOrElse {
-                null
-            }
+            return AuthenticationResponse(
+                token = "1"
+            )
         } catch (e: Exception) {
             print(e)
         }
