@@ -41,7 +41,8 @@ public object DevengNetworkingModule {
     public suspend inline fun <reified T, reified R> sendRequest(
         endpoint: String,
         requestBody: T? = null,
-        requestMethod: DevengHttpMethod
+        requestMethod: DevengHttpMethod,
+        queryParameters: Map<String, String>? = null
     ): Result<R> {
         return try {
             val response: HttpResponse = client.request(
@@ -52,11 +53,14 @@ public object DevengNetworkingModule {
                 }
                 method = requestMethod.toKtorHttpMethod()
 
+                queryParameters?.forEach { (key, value) ->
+                    url.parameters.append(key, value)
+                }
+
                 if (requestBody != null) {
                     contentType(ContentType.Application.Json)
                     setBody(requestBody)
                 }
-
             }
 
             when {
@@ -77,6 +81,4 @@ public object DevengNetworkingModule {
         }
     }
 
-
 }
-
