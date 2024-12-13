@@ -8,11 +8,9 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import kotlinx.serialization.json.Json
 import networking.di.CoreModule
 import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
@@ -48,7 +46,7 @@ public object DevengNetworkingModule {
         requestMethod: DevengHttpMethod,
         queryParameters: Map<String, String>? = null,
         pathParameters: Map<String, String>? = null
-    ): Result<R> {
+    ): R {
         return try {
             val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
 
@@ -73,7 +71,7 @@ public object DevengNetworkingModule {
             when {
                 response.status.isSuccess() -> {
                     val responseBody: R = response.body()
-                    Result.success(responseBody)
+                    responseBody
                 }
 
                 else -> {
@@ -87,7 +85,6 @@ public object DevengNetworkingModule {
             throw DevengException(error)
         }
     }
-
 
 
 }
