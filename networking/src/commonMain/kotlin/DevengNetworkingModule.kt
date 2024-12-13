@@ -70,7 +70,14 @@ public object DevengNetworkingModule {
 
             when {
                 response.status.isSuccess() -> {
-                    val responseBody: R = response.body()
+                    val responseBody: R = when {
+                        R::class == List::class -> {
+                            response.body<List<*>>() as R
+                        }
+                        else -> {
+                            response.body()
+                        }
+                    }
                     Result.success(responseBody)
                 }
 
