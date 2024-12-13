@@ -15,6 +15,8 @@ import networking.di.CoreModule
 import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
 import networking.util.DevengHttpMethod
+import networking.util.addPathParameters
+import networking.util.addQueryParameters
 import networking.util.toKtorHttpMethod
 
 public object DevengNetworkingModule {
@@ -42,19 +44,22 @@ public object DevengNetworkingModule {
         endpoint: String,
         requestBody: T? = null,
         requestMethod: DevengHttpMethod,
-        queryParameters: Map<String, String>? = null
+        queryParameters: Map<String, String>? = null,
+        pathParameters: Map<String, String>? = null
     ): Result<R> {
         return try {
+            val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
+
             val response: HttpResponse = client.request(
-                urlString = "$baseUrl$endpoint"
+                urlString = "$baseUrl$resolvedEndpoint"
             ) {
                 headers {
                     append("Authorization", "Bearer $token")
                 }
                 method = requestMethod.toKtorHttpMethod()
 
-                queryParameters?.forEach { (key, value) ->
-                    url.parameters.append(key, value)
+                url {
+                    addQueryParameters(queryParameters = queryParameters)
                 }
 
                 if (requestBody != null) {
@@ -80,5 +85,7 @@ public object DevengNetworkingModule {
             throw DevengException(error)
         }
     }
+
+
 
 }
