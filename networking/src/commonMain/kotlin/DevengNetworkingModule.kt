@@ -14,15 +14,13 @@ import io.ktor.http.isSuccess
 import networking.di.CoreModule
 import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
-import networking.util.DevengHttpMethod
-import networking.util.addPathParameters
-import networking.util.addQueryParameters
-import networking.util.toKtorHttpMethod
+import networking.util.*
 
 public object DevengNetworkingModule {
     public var baseUrl: String = ""
 
-    public var token: String = ""
+    public var token: String =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJhZG1pbiIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTczNDE3MjQ1NSwiZXhwIjoxNzM0MTc2MDU1LCJpYXQiOjE3MzQxNzI0NTV9.HrDahda-NIvAcTq8urLpTlX4P6-xCj75fxlRC3LZA30"
 
     public val client: HttpClient = NetworkModule.httpClient
 
@@ -53,10 +51,11 @@ public object DevengNetworkingModule {
             val response: HttpResponse = client.request(
                 urlString = "$baseUrl$resolvedEndpoint"
             ) {
-                headers {
-                    append("Authorization", "Bearer $token")
-                }
                 method = requestMethod.toKtorHttpMethod()
+
+                setupAuthorizationHeader(
+                    token = token
+                )
 
                 url {
                     addQueryParameters(queryParameters = queryParameters)
@@ -69,10 +68,7 @@ public object DevengNetworkingModule {
             }
 
             when {
-                response.status.isSuccess() -> {
-                    val responseBody: R = response.body()
-                    responseBody
-                }
+                response.status.isSuccess() -> response.body() as R
 
                 else -> {
                     val error = exceptionHandler.handleHttpException(response.status)
