@@ -8,6 +8,7 @@ kotlin-serialization = "1.7.2"
 
 ktor = "3.0.0-rc-1"
 
+napier = "2.7.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -21,6 +22,8 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization"}
+
+napier-logger = { module = "io.github.aakira:napier", version.ref = "napier" }
 
 [bundles]
 ktor = [

@@ -20,8 +20,7 @@ public object DevengNetworkingModule {
     public var baseUrl: String = ""
 
     public var token: String =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJhZG1pbiIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTczNDE3MjQ1NSwiZXhwIjoxNzM0MTc2MDU1LCJpYXQiOjE3MzQxNzI0NTV9.HrDahda-NIvAcTq8urLpTlX4P6-xCj75fxlRC3LZA30"
-
+        "*"
     public val client: HttpClient = NetworkModule.httpClient
 
     public val exceptionHandler: ExceptionHandler = CoreModule.exceptionHandler
@@ -76,9 +75,15 @@ public object DevengNetworkingModule {
                 }
             }
         } catch (e: Exception) {
-            println(e)
-            val error = exceptionHandler.handleNetworkException(e)
-            throw DevengException(error)
+            if (e is DevengException) {
+                throw e
+            } else {
+                val error = exceptionHandler.handleNetworkException(e)
+                println(e.message)
+                println(e.cause)
+                throw DevengException(error)
+            }
+
         }
     }
 

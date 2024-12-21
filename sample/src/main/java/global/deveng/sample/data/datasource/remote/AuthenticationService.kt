@@ -33,6 +33,7 @@ class AuthenticationService {
         val requestBody = AuthenticationRequest(username, password)
 
         try {
+            /*
             val result =
                 DevengNetworkingModule.sendRequest<Unit, List<CurrencySymbolsResponse>?>(
                     endpoint = "/Symbols/all/{symbolTypeId}",
@@ -41,11 +42,18 @@ class AuthenticationService {
                     pathParameters = mapOf("symbolTypeId" to "1")
                 )
 
-            return AuthenticationResponse(
-                token = "1"
+
+             */
+
+
+            val result = DevengNetworkingModule.sendRequest<AuthenticationRequest, AuthenticationResponse?>(
+                endpoint = "/Authentication/login",
+                requestBody = requestBody,
+                requestMethod = DevengHttpMethod.POST
             )
+            return result
         } catch (e: Exception) {
-            print(e)
+            print(e.message)
         }
 
         return null

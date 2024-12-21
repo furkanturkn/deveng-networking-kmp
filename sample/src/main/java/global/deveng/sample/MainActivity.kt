@@ -37,12 +37,13 @@ class MainActivity : ComponentActivity() {
             try {
                 GlobalScope.launch {
                     a = authenticationRepositoryImpl.authenticate(
-                        "admin",
+                        "amin",
                         "1"
                     )
                     println(a?.token)
                 }
             } catch (e: DevengException) {
+                println("*******")
                 println(e.message)
             }
 

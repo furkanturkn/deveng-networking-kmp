@@ -19,10 +19,9 @@ internal object ExceptionHandlerImpl : ExceptionHandler {
     }
 
     override fun handleNetworkException(cause: Throwable): DevengUiError {
-        return DevengUiError.createError(
-            ErrorKey.NETWORK_ERROR,
-            locale,
-            cause.message ?: "Unknown cause"
-        )
+        if (locale == Locale.TR) {
+            return DevengUiError.NetworkError("Bir hata oluştu.")
+        }
+        return DevengUiError.NetworkError("An error occurred.")
     }
 }
