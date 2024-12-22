@@ -1,5 +1,6 @@
 package global.deveng.sample.data.datasource.remote
 
+import error_handling.DevengUiError
 import global.deveng.sample.data.datasource.remote.model.response.AuthenticationResponse
 import kotlinx.serialization.Serializable
 import networking.DevengNetworkingModule
@@ -46,13 +47,17 @@ class AuthenticationService {
              */
 
 
-            val result = DevengNetworkingModule.sendRequest<AuthenticationRequest, AuthenticationResponse?>(
-                endpoint = "/Authentication/login",
-                requestBody = requestBody,
-                requestMethod = DevengHttpMethod.POST
-            )
+            val result =
+                DevengNetworkingModule.sendRequest<AuthenticationRequest, AuthenticationResponse?>(
+                    endpoint = "/Authentication/login",
+                    requestBody = requestBody,
+                    requestMethod = DevengHttpMethod.POST
+                )
             return result
         } catch (e: Exception) {
+            if (e.cause is DevengUiError.UnauthorizedError) {
+                throw e
+            }
             print(e.message)
         }
 

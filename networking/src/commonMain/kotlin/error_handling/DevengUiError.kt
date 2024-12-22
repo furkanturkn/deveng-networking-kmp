@@ -29,4 +29,4 @@ public sealed class DevengUiError(errorMessage: String) : Throwable(errorMessage
     }
 }
 
-public class DevengException(error: DevengUiError) : Exception(error.message)
+public class DevengException(error: DevengUiError) : Exception(error.message, error)
