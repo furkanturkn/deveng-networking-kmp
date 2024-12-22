@@ -4,6 +4,8 @@ import di.NetworkModule
 import error_handling.DevengException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
+import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -16,7 +18,7 @@ import networking.localization.Locale
 import networking.util.*
 
 public object DevengNetworkingModule {
-    public var baseUrl: String = ""
+    public var baseUrl: String = "wss://ws.postman-echo.com"
 
     public var token: String =
         "*"
@@ -86,5 +88,20 @@ public object DevengNetworkingModule {
         }
     }
 
+    public suspend fun connectToWebSocket(
+        endpoint: String,
+        handler: suspend DefaultClientWebSocketSession.() -> Unit
+    ) {
+        try {
+            client.webSocket(
+                urlString = "$baseUrl$endpoint",
+                block = handler
+            )
+        } catch (e: Exception) {
+            println(e)
+            val error = exceptionHandler.handleNetworkException(e)
+            throw DevengException(error)
+        }
+    }
 
 }

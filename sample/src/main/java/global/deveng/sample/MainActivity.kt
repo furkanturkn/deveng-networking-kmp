@@ -1,6 +1,7 @@
 package global.deveng.sample
 
 import android.os.Bundle
+import android.provider.Settings.Global
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,8 +19,12 @@ import global.deveng.sample.data.datasource.remote.AuthenticationService
 import global.deveng.sample.data.repository.AuthenticationRepositoryImpl
 import global.deveng.sample.domain.model.Authentication
 import global.deveng.sample.ui.theme.DevengnetworkingkmpTheme
+import io.ktor.websocket.Frame
+import io.ktor.websocket.readReason
+import io.ktor.websocket.readText
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import networking.DevengNetworkingModule
 
 
 class MainActivity : ComponentActivity() {
@@ -34,20 +39,30 @@ class MainActivity : ComponentActivity() {
         )
 
         fun test() {
+
             try {
                 GlobalScope.launch {
+
+                    exampleWebSocketUsage()
+
+                    /*
                     a = authenticationRepositoryImpl.authenticate(
                         "amin",
                         "1"
                     )
                     println(a?.token)
+
+                     */
                 }
             } catch (e: DevengException) {
                 println("*******")
                 println(e.message)
             }
 
+
+
         }
+
 
 
         val viewmodel = MainViewModel()
@@ -98,5 +113,24 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 fun GreetingPreview() {
     DevengnetworkingkmpTheme {
         Greeting("Android")
+    }
+}
+
+
+suspend fun exampleWebSocketUsage() {
+    DevengNetworkingModule.connectToWebSocket("/raw") {
+        send(Frame.Text("Hello WebSocket!")) // Send a message
+
+        for (frame in incoming) {
+            when (frame) {
+                is Frame.Text -> {
+                    println("Received: ${frame.readText()}")
+                }
+                is Frame.Close -> {
+                    println("WebSocket closed: ${frame.readReason()}")
+                }
+                else -> Unit
+            }
+        }
     }
 }
