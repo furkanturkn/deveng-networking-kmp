@@ -6,7 +6,7 @@ import networking.localization.LocalizationManager
 public sealed class DevengUiError(errorMessage: String) : Throwable(errorMessage) {
     internal class HttpError(message: String) : DevengUiError(message)
     internal class NetworkError(message: String) : DevengUiError(message)
-    internal class UnauthorizedError(message: String) : DevengUiError(message)
+    public class UnauthorizedError(message: String) : DevengUiError(message)
     internal class NotFoundError(message: String) : DevengUiError(message)
     internal class ServerError(message: String) : DevengUiError(message)
     public class UnknownError(message: String) : DevengUiError(message)
