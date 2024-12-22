@@ -12,10 +12,12 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.websocket.CloseReason
 import networking.di.CoreModule
 import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
 import networking.util.*
+import websocket.WebSocketConnection
 
 public object DevengNetworkingModule {
     public var baseUrl: String = "wss://ws.postman-echo.com"
@@ -88,20 +90,16 @@ public object DevengNetworkingModule {
         }
     }
 
-    public suspend fun connectToWebSocket(
+    public fun connectToWebSocket(
         endpoint: String,
-        handler: suspend DefaultClientWebSocketSession.() -> Unit
-    ) {
-        try {
-            client.webSocket(
-                urlString = "$baseUrl$endpoint",
-                block = handler
-            )
-        } catch (e: Exception) {
-            println(e)
-            val error = exceptionHandler.handleNetworkException(e)
-            throw DevengException(error)
-        }
+        onConnected: suspend WebSocketConnection.() -> Unit,
+        onMessageReceived: (String) -> Unit,
+        onError: (Throwable) -> Unit,
+        onClose: (() -> Unit)? = null
+    ): WebSocketConnection {
+        val fullUrl = "$baseUrl$endpoint"
+        val connection = WebSocketConnection(client, fullUrl, exceptionHandler)
+        connection.start(onConnected, onMessageReceived, onError, onClose)
+        return connection
     }
-
 }

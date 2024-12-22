@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "global.deveng"
-version = "1.1.3"
+version = "1.1.4"
 
 kotlin {
     jvm("desktop")

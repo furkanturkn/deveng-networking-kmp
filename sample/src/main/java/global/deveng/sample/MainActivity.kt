@@ -23,7 +23,9 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readReason
 import io.ktor.websocket.readText
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import networking.DevengNetworkingModule
 
 
@@ -118,19 +120,29 @@ fun GreetingPreview() {
 
 
 suspend fun exampleWebSocketUsage() {
-    DevengNetworkingModule.connectToWebSocket("/raw") {
-        send(Frame.Text("Hello WebSocket!")) // Send a message
+    val connection = DevengNetworkingModule.connectToWebSocket(
+        endpoint = "/raw",
+        onConnected = {
+            // Send a message as soon as the connection is established
+            sendMessage("Hello, WebSocket!")
+        },
+        onMessageReceived = { message ->
+            println("Message received: $message")
+        },
+        onError = { error ->
+            println("An error occurred: ${error.message}")
+        },
+        onClose = {
+            println("WebSocket connection closed.")
+        }
+    )
 
-        for (frame in incoming) {
-            when (frame) {
-                is Frame.Text -> {
-                    println("Received: ${frame.readText()}")
-                }
-                is Frame.Close -> {
-                    println("WebSocket closed: ${frame.readReason()}")
-                }
-                else -> Unit
-            }
+    runBlocking {
+        delay(2000)
+        try {
+            connection.sendMessage("This is another message sent after connection.")
+        } catch (e: Exception) {
+            println("Error sending message: ${e.message}")
         }
     }
 }
