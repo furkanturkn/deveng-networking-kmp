@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "global.deveng"
-version = "1.1.4"
+version = "1.1.5"
 
 kotlin {
     jvm("desktop")
@@ -69,7 +69,6 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.bundles.ktor)
             implementation(libs.kotlinx.serialization.json)
-            implementation(libs.napier.logger)
         }
 
         desktopMain.dependencies {
