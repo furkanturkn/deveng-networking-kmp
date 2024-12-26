@@ -38,11 +38,15 @@ public class WebSocketConnection(
                         }
                     } catch (e: Exception) {
                         onError(exceptionHandler.handleNetworkException(e))
+                        println("Error message: ${e.message}")
+                        println("Error cause: ${e.cause}")
                     }
                 }
             }
         } catch (e: Exception) {
             onError(exceptionHandler.handleNetworkException(e))
+            println("Error message: ${e.message}")
+            println("Error cause: ${e.cause}")
         }
     }
 

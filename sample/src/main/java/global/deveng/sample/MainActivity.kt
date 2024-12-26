@@ -121,10 +121,9 @@ fun GreetingPreview() {
 
 suspend fun exampleWebSocketUsage() {
     val connection = DevengNetworkingModule.connectToWebSocket(
-        endpoint = "/raw",
+        endpoint = "/Doviz",
         onConnected = {
-            // Send a message as soon as the connection is established
-            sendMessage("Hello, WebSocket!")
+            sendMessage("{\"protocol\":\"json\",\"version\":1}\u001E")
         },
         onMessageReceived = { message ->
             println("Message received: $message")

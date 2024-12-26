@@ -20,7 +20,7 @@ import networking.util.*
 import websocket.WebSocketConnection
 
 public object DevengNetworkingModule {
-    public var baseUrl: String = "wss://ws.postman-echo.com"
+    public var baseUrl: String = ""
 
     public var token: String =
         "*"
