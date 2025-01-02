@@ -4,26 +4,25 @@ import di.NetworkModule
 import error_handling.DevengException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
-import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import io.ktor.websocket.CloseReason
+import kotlinx.serialization.json.Json
 import networking.di.CoreModule
 import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
 import networking.util.*
+import util.ErrorResponse
 import websocket.WebSocketConnection
 
 public object DevengNetworkingModule {
     public var baseUrl: String = ""
 
     public var token: String =
-        "*"
+        ""
     public val client: HttpClient = NetworkModule.httpClient
 
     public val exceptionHandler: ExceptionHandler = CoreModule.exceptionHandler
@@ -73,7 +72,17 @@ public object DevengNetworkingModule {
                 response.status.isSuccess() -> response.body() as R
 
                 else -> {
-                    val error = exceptionHandler.handleHttpException(response.status)
+                    var errorResponse: ErrorResponse? = null
+                    try {
+                        errorResponse = Json.decodeFromString<ErrorResponse>(response.body())
+                    } catch (e: Exception) {
+                        println("Cannot decode error response")
+                    }
+
+                    val error = exceptionHandler.handleHttpException(
+                        errorMessage = errorResponse?.message,
+                        status = response.status
+                    )
                     throw DevengException(error)
                 }
             }

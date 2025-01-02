@@ -32,7 +32,7 @@ class AuthenticationService {
         password: String
     ): AuthenticationResponse? {
         val requestBody = AuthenticationRequest(username, password)
-
+        println(requestBody.password)
         try {
             /*
             val result =
@@ -55,9 +55,6 @@ class AuthenticationService {
                 )
             return result
         } catch (e: Exception) {
-            if (e.cause is DevengUiError.UnauthorizedError) {
-                throw e
-            }
             print(e.message)
         }
 

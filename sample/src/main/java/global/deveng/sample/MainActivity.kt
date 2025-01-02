@@ -45,16 +45,16 @@ class MainActivity : ComponentActivity() {
             try {
                 GlobalScope.launch {
 
-                    exampleWebSocketUsage()
+                   // exampleWebSocketUsage()
 
-                    /*
+
                     a = authenticationRepositoryImpl.authenticate(
                         "amin",
                         "1"
                     )
                     println(a?.token)
 
-                     */
+
                 }
             } catch (e: DevengException) {
                 println("*******")

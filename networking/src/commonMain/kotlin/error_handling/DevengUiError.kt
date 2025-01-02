@@ -15,15 +15,19 @@ public sealed class DevengUiError(errorMessage: String) : Throwable(errorMessage
         internal fun createError(
             key: ErrorKey,
             locale: Locale,
-            vararg args: Any
+            apiErrorMessage: String?
         ): DevengUiError {
-            val localizedMessage = LocalizationManager.getLocalizedError(locale, key, *args)
-            return when (key) {
-                ErrorKey.UNAUTHORIZED -> UnauthorizedError(localizedMessage)
-                ErrorKey.NOT_FOUND -> NotFoundError(localizedMessage)
-                ErrorKey.SERVER_ERROR -> ServerError(localizedMessage)
-                ErrorKey.UNKNOWN_ERROR -> UnknownError(localizedMessage)
-                ErrorKey.NETWORK_ERROR -> NetworkError(localizedMessage)
+            if(apiErrorMessage.isNullOrEmpty()) {
+                val localizedMessage = LocalizationManager.getLocalizedError(locale, key)
+                return when (key) {
+                    ErrorKey.UNAUTHORIZED -> UnauthorizedError(localizedMessage)
+                    ErrorKey.NOT_FOUND -> NotFoundError(localizedMessage)
+                    ErrorKey.SERVER_ERROR -> ServerError(localizedMessage)
+                    ErrorKey.UNKNOWN_ERROR -> UnknownError(localizedMessage)
+                    ErrorKey.NETWORK_ERROR -> NetworkError(localizedMessage)
+                }
+            } else {
+                return UnknownError(apiErrorMessage)
             }
         }
     }

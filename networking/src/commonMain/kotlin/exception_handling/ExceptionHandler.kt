@@ -8,6 +8,7 @@ public interface ExceptionHandler {
     public var locale: Locale
 
     public fun handleHttpException(
+        errorMessage: String?,
         status: HttpStatusCode
     ): DevengUiError
 
