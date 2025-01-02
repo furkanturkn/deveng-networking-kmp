@@ -31,3 +31,12 @@ public fun HttpMessageBuilder.setupAuthorizationHeader(token: String) {
     }
 
 }
+
+/**
+ * Extension function to set the locale header in the request builder.
+ */
+public fun HttpMessageBuilder.setupLocaleHeader(locale: String) {
+    this.headers {
+        append("language", locale)
+    }
+}

@@ -58,6 +58,10 @@ public object DevengNetworkingModule {
                     token = token
                 )
 
+                setupLocaleHeader(
+                    locale = exceptionHandler.locale.toString()
+                )
+
                 url {
                     addQueryParameters(queryParameters = queryParameters)
                 }
