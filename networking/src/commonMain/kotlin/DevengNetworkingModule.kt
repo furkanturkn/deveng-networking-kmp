@@ -19,7 +19,8 @@ import util.ErrorResponse
 import websocket.WebSocketConnection
 
 public object DevengNetworkingModule {
-    public var baseUrl: String = ""
+    public var restBaseUrl: String = ""
+    public var socketBaseUrl: String = ""
 
     public var token: String =
         ""
@@ -27,8 +28,12 @@ public object DevengNetworkingModule {
 
     public val exceptionHandler: ExceptionHandler = CoreModule.exceptionHandler
 
-    public fun setApiBaseUrl(baseUrl: String) {
-        this.baseUrl = baseUrl
+    public fun setApiBaseUrl(url: String) {
+        this.restBaseUrl = url
+    }
+
+    public fun setSocketBaseUrl(url: String) {
+        this.socketBaseUrl = url
     }
 
     public fun setBearerToken(token: String) {
@@ -50,7 +55,7 @@ public object DevengNetworkingModule {
             val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
 
             val response: HttpResponse = client.request(
-                urlString = "$baseUrl$resolvedEndpoint"
+                urlString = "$restBaseUrl$resolvedEndpoint"
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
@@ -110,8 +115,8 @@ public object DevengNetworkingModule {
         onError: (Throwable) -> Unit,
         onClose: (() -> Unit)? = null
     ): WebSocketConnection {
-        val fullUrl = "$baseUrl$endpoint"
-        val connection = WebSocketConnection(client, fullUrl, exceptionHandler)
+        val fullUrl = "$socketBaseUrl$endpoint"
+        val connection = WebSocketConnection.getConnection(endpoint, client, fullUrl, exceptionHandler)
         connection.start(onConnected, onMessageReceived, onError, onClose)
         return connection
     }
