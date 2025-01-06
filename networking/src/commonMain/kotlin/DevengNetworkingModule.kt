@@ -32,7 +32,7 @@ public object DevengNetworkingModule {
         this.restBaseUrl = url
     }
 
-    public fun setSocketBaseUrl(url: String) {
+    public fun setWebSocketBaseUrl(url: String) {
         this.socketBaseUrl = url
     }
 
