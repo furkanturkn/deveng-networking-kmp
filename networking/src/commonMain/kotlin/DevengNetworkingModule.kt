@@ -19,8 +19,8 @@ import util.ErrorResponse
 import websocket.WebSocketConnection
 
 public object DevengNetworkingModule {
-    public var restBaseUrl: String = ""
-    public var socketBaseUrl: String = ""
+    public var restBaseUrl: String = "https://burzemanagementapi.sekompos.com/api"
+    public var socketBaseUrl: String = "wss://burzemanagementapi.sekompos.com/websocket"
 
     public var token: String =
         ""
@@ -108,7 +108,7 @@ public object DevengNetworkingModule {
         }
     }
 
-    public fun connectToWebSocket(
+    public suspend fun connectToWebSocket(
         endpoint: String,
         onConnected: suspend WebSocketConnection.() -> Unit,
         onMessageReceived: (String) -> Unit,
@@ -119,5 +119,9 @@ public object DevengNetworkingModule {
         val connection = WebSocketConnection.getConnection(endpoint, client, fullUrl, exceptionHandler)
         connection.start(onConnected, onMessageReceived, onError, onClose)
         return connection
+    }
+
+    public suspend fun closeWebSocketConnection(endpoint: String) {
+        WebSocketConnection.closeConnection(endpoint)
     }
 }
