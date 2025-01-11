@@ -124,4 +124,8 @@ public object DevengNetworkingModule {
     public suspend fun closeWebSocketConnection(endpoint: String) {
         WebSocketConnection.closeConnection(endpoint)
     }
+
+    public suspend fun closeAllWebSocketConnections() {
+        WebSocketConnection.closeAll()
+    }
 }
