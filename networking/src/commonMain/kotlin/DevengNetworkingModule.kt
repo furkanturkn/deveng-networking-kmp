@@ -19,8 +19,8 @@ import util.ErrorResponse
 import websocket.WebSocketConnection
 
 public object DevengNetworkingModule {
-    public var restBaseUrl: String = "https://burzemanagementapi.sekompos.com/api"
-    public var socketBaseUrl: String = "wss://burzemanagementapi.sekompos.com/websocket"
+    public var restBaseUrl: String = ""
+    public var socketBaseUrl: String = ""
 
     public var token: String =
         ""
@@ -79,6 +79,70 @@ public object DevengNetworkingModule {
 
             when {
                 response.status.isSuccess() -> response.body() as R
+
+                else -> {
+                    var errorResponse: ErrorResponse? = null
+                    try {
+                        errorResponse = Json.decodeFromString<ErrorResponse>(response.body())
+                    } catch (e: Exception) {
+                        println("Cannot decode error response")
+                    }
+
+                    val error = exceptionHandler.handleHttpException(
+                        errorMessage = errorResponse?.message,
+                        status = response.status
+                    )
+                    throw DevengException(error)
+                }
+            }
+        } catch (e: Exception) {
+            if (e is DevengException) {
+                throw e
+            } else {
+                val error = exceptionHandler.handleNetworkException(e)
+                println(e.message)
+                println(e.cause)
+                throw DevengException(error)
+            }
+
+        }
+    }
+
+    public suspend inline fun <reified T> sendRequestForHttpResponse(
+        endpoint: String,
+        requestBody: T? = null,
+        requestMethod: DevengHttpMethod,
+        queryParameters: Map<String, String>? = null,
+        pathParameters: Map<String, String>? = null
+    ): HttpResponse {
+        return try {
+            val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
+
+            val response: HttpResponse = client.request(
+                urlString = "$restBaseUrl$resolvedEndpoint"
+            ) {
+                method = requestMethod.toKtorHttpMethod()
+
+                setupAuthorizationHeader(
+                    token = token
+                )
+
+                setupLocaleHeader(
+                    locale = exceptionHandler.locale.toString()
+                )
+
+                url {
+                    addQueryParameters(queryParameters = queryParameters)
+                }
+
+                if (requestBody != null) {
+                    contentType(ContentType.Application.Json)
+                    setBody(requestBody)
+                }
+            }
+
+            when {
+                response.status.isSuccess() -> response
 
                 else -> {
                     var errorResponse: ErrorResponse? = null
