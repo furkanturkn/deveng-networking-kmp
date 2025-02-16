@@ -37,6 +37,9 @@ internal object LocalizationManager {
         formatArgs.forEach { arg ->
             result = result.replaceFirst("%s", arg.toString())
         }
+        if (formatArgs.isEmpty()) {
+            result = result.replace("%s", "")
+        }
         return result
     }
 }

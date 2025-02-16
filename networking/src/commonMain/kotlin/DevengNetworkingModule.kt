@@ -7,9 +7,11 @@ import io.ktor.client.call.body
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import networking.di.CoreModule
 import networking.exception_handling.ExceptionHandler
@@ -108,6 +110,76 @@ public object DevengNetworkingModule {
         }
     }
 
+    public suspend fun <T : Any, R : Any> sendRequest(
+        endpoint: String,
+        requestBody: T? = null,
+        requestMethod: DevengHttpMethod,
+        queryParameters: Map<String, String>? = null,
+        pathParameters: Map<String, String>? = null,
+        requestSerializer: KSerializer<T>? = null,
+        responseSerializer: KSerializer<R>
+    ): R {
+        return try {
+            val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
+
+            val response: HttpResponse = client.request(
+                urlString = "$restBaseUrl$resolvedEndpoint"
+            ) {
+                method = requestMethod.toKtorHttpMethod()
+
+                setupAuthorizationHeader(
+                    token = token
+                )
+
+                setupLocaleHeader(
+                    locale = exceptionHandler.locale.toString()
+                )
+
+                url {
+                    addQueryParameters(queryParameters = queryParameters)
+                }
+
+                if (requestBody != null && requestSerializer != null) {
+                    contentType(ContentType.Application.Json)
+                    setBody(Json.encodeToString(requestSerializer, requestBody))
+                }
+            }
+
+            when {
+                response.status.isSuccess() -> Json.decodeFromString(
+                    responseSerializer,
+                    response.bodyAsText()
+                )
+
+                else -> {
+                    var errorResponse: ErrorResponse? = null
+                    try {
+                        errorResponse =
+                            Json.decodeFromString(ErrorResponse.serializer(), response.bodyAsText())
+                    } catch (e: Exception) {
+                        println("Cannot decode error response")
+                    }
+
+                    val error = exceptionHandler.handleHttpException(
+                        errorMessage = errorResponse?.message,
+                        status = response.status
+                    )
+                    throw DevengException(error)
+                }
+            }
+        } catch (e: Exception) {
+            if (e is DevengException) {
+                throw e
+            } else {
+                val error = exceptionHandler.handleNetworkException(e)
+                println(e.message)
+                println(e.cause)
+                throw DevengException(error)
+            }
+        }
+    }
+
+
     public suspend inline fun <reified T> sendRequestForHttpResponse(
         endpoint: String,
         requestBody: T? = null,
@@ -180,8 +252,18 @@ public object DevengNetworkingModule {
         onClose: (() -> Unit)? = null
     ): WebSocketConnection {
         val fullUrl = "$socketBaseUrl$endpoint"
-        val connection = WebSocketConnection.getConnection(endpoint, client, fullUrl, exceptionHandler)
-        connection.start(onConnected, onMessageReceived, onError, onClose)
+        val connection = WebSocketConnection.getConnection(
+            endpoint = endpoint,
+            client = client,
+            url = fullUrl,
+            exceptionHandler = exceptionHandler
+        )
+        connection.start(
+            onConnected = onConnected,
+            onMessageReceived = onMessageReceived,
+            onError = onError,
+            onClose = onClose
+        )
         return connection
     }
 
