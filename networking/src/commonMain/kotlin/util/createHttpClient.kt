@@ -8,11 +8,14 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import networking.DevengNetworkingModule
 
 internal fun createHttpClient(engine: HttpClientEngine): HttpClient {
     return HttpClient(engine) {
-        install(Logging) {
-            level = LogLevel.ALL
+        if(DevengNetworkingModule.loggingEnabled){
+            install(Logging) {
+                level = LogLevel.ALL
+            }
         }
 
         install(ContentNegotiation) {

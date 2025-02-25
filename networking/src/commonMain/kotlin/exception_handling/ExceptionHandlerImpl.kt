@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode
 import networking.localization.Locale
 
 internal object ExceptionHandlerImpl : ExceptionHandler {
-    override var locale: Locale = Locale.TR
+    override var locale: Locale? = null
 
     override fun handleHttpException(
         errorMessage: String?,
@@ -20,7 +20,7 @@ internal object ExceptionHandlerImpl : ExceptionHandler {
         }
         return DevengUiError.createError(
             key = errorKey,
-            locale = locale,
+            locale = locale ?: Locale.TR,
             apiErrorMessage = errorMessage
         )
     }

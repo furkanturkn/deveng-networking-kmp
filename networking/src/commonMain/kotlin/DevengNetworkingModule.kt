@@ -24,11 +24,17 @@ public object DevengNetworkingModule {
     public var restBaseUrl: String = ""
     public var socketBaseUrl: String = ""
 
+    public var loggingEnabled: Boolean = true
+
     public var token: String =
         ""
     public val client: HttpClient = NetworkModule.httpClient
 
     public val exceptionHandler: ExceptionHandler = CoreModule.exceptionHandler
+
+    public fun setLoggingState(enabled: Boolean) {
+        this.loggingEnabled = enabled
+    }
 
     public fun setApiBaseUrl(url: String) {
         this.restBaseUrl = url
@@ -65,9 +71,11 @@ public object DevengNetworkingModule {
                     token = token
                 )
 
-                setupLocaleHeader(
-                    locale = exceptionHandler.locale.toString()
-                )
+                if(exceptionHandler.locale != null){
+                    setupLocaleHeader(
+                        locale = exceptionHandler.locale.toString()
+                    )
+                }
 
                 url {
                     addQueryParameters(queryParameters = queryParameters)
@@ -157,7 +165,7 @@ public object DevengNetworkingModule {
                         errorResponse =
                             Json.decodeFromString(ErrorResponse.serializer(), response.bodyAsText())
                     } catch (e: Exception) {
-                        println("Cannot decode error response")
+                        customLog("Cannot decode error response")
                     }
 
                     val error = exceptionHandler.handleHttpException(
@@ -172,8 +180,7 @@ public object DevengNetworkingModule {
                 throw e
             } else {
                 val error = exceptionHandler.handleNetworkException(e)
-                println(e.message)
-                println(e.cause)
+                customLog(e.message.toString())
                 throw DevengException(error)
             }
         }

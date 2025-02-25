@@ -5,7 +5,7 @@ import io.ktor.http.HttpStatusCode
 import networking.localization.Locale
 
 public interface ExceptionHandler {
-    public var locale: Locale
+    public var locale: Locale?
 
     public fun handleHttpException(
         errorMessage: String?,
