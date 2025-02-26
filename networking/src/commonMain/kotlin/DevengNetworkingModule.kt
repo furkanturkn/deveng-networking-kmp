@@ -139,9 +139,11 @@ public object DevengNetworkingModule {
                     token = token
                 )
 
-                setupLocaleHeader(
-                    locale = exceptionHandler.locale.toString()
-                )
+                if(exceptionHandler.locale != null){
+                    setupLocaleHeader(
+                        locale = exceptionHandler.locale.toString()
+                    )
+                }
 
                 url {
                     addQueryParameters(queryParameters = queryParameters)
