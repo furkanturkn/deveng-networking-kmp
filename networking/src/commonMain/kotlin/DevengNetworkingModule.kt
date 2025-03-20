@@ -26,8 +26,8 @@ public object DevengNetworkingModule {
 
     public var loggingEnabled: Boolean = true
 
-    public var token: String =
-        ""
+    public var token: String = ""
+
     public val client: HttpClient = NetworkModule.httpClient
 
     public val exceptionHandler: ExceptionHandler = CoreModule.exceptionHandler

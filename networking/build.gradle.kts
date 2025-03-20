@@ -2,6 +2,7 @@ import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import java.io.ByteArrayOutputStream
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -12,7 +13,7 @@ plugins {
 }
 
 group = "global.deveng"
-version = "1.2.15"
+version = generateVersionName()
 
 kotlin {
     jvm("desktop")
@@ -126,4 +127,28 @@ mavenPublishing {
                 "scm:git:ssh://git@github.com/furkanturkn/deveng-networking-kmp.git"
         }
     }
+}
+
+fun getCommitCount(): String {
+    val stdout = ByteArrayOutputStream()
+    project.exec {
+        commandLine = listOf("git", "rev-list", "--count", "HEAD")
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
+fun generateVersionName(): String {
+    val versionMajor = libs.versions.app.version.major.get()
+    val appVersionCode = libs.versions.app.version.code.get()
+
+    val commitCount = getCommitCount()
+
+    return StringBuilder().apply {
+        append(versionMajor)
+        append(".")
+        append(appVersionCode)
+        append(".")
+        append(commitCount)
+    }.toString()
 }

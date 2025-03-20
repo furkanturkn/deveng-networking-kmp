@@ -6,13 +6,11 @@ import networking.DevengNetworkingModule
 import networking.util.createHttpClient
 
 internal actual object NetworkModule {
-    init {
+    actual val httpClient: HttpClient by lazy {
         if (!DevengNetworkingModule.loggingEnabled) {
+            println("Deveng..")
             suppressHttpLogs()
         }
-    }
-
-    actual val httpClient: HttpClient by lazy {
         createHttpClient(Js.create())
     }
 }
