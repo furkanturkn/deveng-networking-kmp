@@ -2,6 +2,7 @@ package networking
 
 import di.NetworkModule
 import error_handling.DevengException
+import error_handling.DevengUiError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.request
@@ -28,11 +29,30 @@ public object DevengNetworkingModule {
 
     public var token: String = ""
 
-    public val client: HttpClient = NetworkModule.httpClient
+    public var client: HttpClient? = null
 
-    public val exceptionHandler: ExceptionHandler = CoreModule.exceptionHandler
+    public var exceptionHandler: ExceptionHandler? = null
 
-    public fun setLoggingState(enabled: Boolean) {
+    public fun initDevengNetworkingModule(
+        restBaseUrl: String,
+        socketBaseUrl: String,
+        loggingEnabled: Boolean = true,
+        token: String = "",
+        locale: Locale? = null
+    ) {
+        setApiBaseUrl(restBaseUrl)
+        setWebSocketBaseUrl(socketBaseUrl)
+        setLoggingState(loggingEnabled)
+        setBearerToken(token)
+        if (locale != null) {
+            setLocale(locale)
+        }
+
+        client = NetworkModule.httpClient
+        exceptionHandler = CoreModule.exceptionHandler
+    }
+
+    private fun setLoggingState(enabled: Boolean) {
         this.loggingEnabled = enabled
     }
 
@@ -49,7 +69,7 @@ public object DevengNetworkingModule {
     }
 
     public fun setLocale(locale: Locale) {
-        exceptionHandler.locale = locale
+        exceptionHandler?.locale = locale
     }
 
     public suspend inline fun <reified T, reified R> sendRequest(
@@ -60,9 +80,14 @@ public object DevengNetworkingModule {
         pathParameters: Map<String, String>? = null
     ): R {
         return try {
+            if (client == null) {
+                throw (IllegalStateException("Client is not initialized"))
+            }
+
+
             val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
 
-            val response: HttpResponse = client.request(
+            val response: HttpResponse = client!!.request(
                 urlString = "$restBaseUrl$resolvedEndpoint"
             ) {
                 method = requestMethod.toKtorHttpMethod()
@@ -71,9 +96,9 @@ public object DevengNetworkingModule {
                     token = token
                 )
 
-                if(exceptionHandler.locale != null){
+                if (exceptionHandler?.locale != null) {
                     setupLocaleHeader(
-                        locale = exceptionHandler.locale.toString()
+                        locale = exceptionHandler?.locale.toString()
                     )
                 }
 
@@ -98,21 +123,21 @@ public object DevengNetworkingModule {
                         println("Cannot decode error response")
                     }
 
-                    val error = exceptionHandler.handleHttpException(
+                    val error = exceptionHandler?.handleHttpException(
                         errorMessage = errorResponse?.message,
                         status = response.status
                     )
-                    throw DevengException(error)
+                    throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
                 }
             }
         } catch (e: Exception) {
             if (e is DevengException) {
                 throw e
             } else {
-                val error = exceptionHandler.handleNetworkException(e)
+                val error = exceptionHandler?.handleNetworkException(e)
                 println(e.message)
                 println(e.cause)
-                throw DevengException(error)
+                throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
 
         }
@@ -127,10 +152,14 @@ public object DevengNetworkingModule {
         requestSerializer: KSerializer<T>? = null,
         responseSerializer: KSerializer<R>
     ): R {
+        if (client == null) {
+            throw (IllegalStateException("Client is not initialized"))
+        }
+
         return try {
             val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
 
-            val response: HttpResponse = client.request(
+            val response: HttpResponse = client!!.request(
                 urlString = "$restBaseUrl$resolvedEndpoint"
             ) {
                 method = requestMethod.toKtorHttpMethod()
@@ -139,9 +168,9 @@ public object DevengNetworkingModule {
                     token = token
                 )
 
-                if(exceptionHandler.locale != null){
+                if (exceptionHandler?.locale != null) {
                     setupLocaleHeader(
-                        locale = exceptionHandler.locale.toString()
+                        locale = exceptionHandler?.locale.toString()
                     )
                 }
 
@@ -170,20 +199,20 @@ public object DevengNetworkingModule {
                         customLog("Cannot decode error response")
                     }
 
-                    val error = exceptionHandler.handleHttpException(
+                    val error = exceptionHandler?.handleHttpException(
                         errorMessage = errorResponse?.message,
                         status = response.status
                     )
-                    throw DevengException(error)
+                    throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
                 }
             }
         } catch (e: Exception) {
             if (e is DevengException) {
                 throw e
             } else {
-                val error = exceptionHandler.handleNetworkException(e)
+                val error = exceptionHandler?.handleNetworkException(e)
                 customLog(e.message.toString())
-                throw DevengException(error)
+                throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
         }
     }
@@ -196,10 +225,14 @@ public object DevengNetworkingModule {
         queryParameters: Map<String, String>? = null,
         pathParameters: Map<String, String>? = null
     ): HttpResponse {
+        if (client == null) {
+            throw (IllegalStateException("Client is not initialized"))
+        }
+
         return try {
             val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
 
-            val response: HttpResponse = client.request(
+            val response: HttpResponse = client!!.request(
                 urlString = "$restBaseUrl$resolvedEndpoint"
             ) {
                 method = requestMethod.toKtorHttpMethod()
@@ -209,7 +242,7 @@ public object DevengNetworkingModule {
                 )
 
                 setupLocaleHeader(
-                    locale = exceptionHandler.locale.toString()
+                    locale = exceptionHandler?.locale.toString()
                 )
 
                 url {
@@ -233,21 +266,21 @@ public object DevengNetworkingModule {
                         println("Cannot decode error response")
                     }
 
-                    val error = exceptionHandler.handleHttpException(
+                    val error = exceptionHandler?.handleHttpException(
                         errorMessage = errorResponse?.message,
                         status = response.status
                     )
-                    throw DevengException(error)
+                    throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
                 }
             }
         } catch (e: Exception) {
             if (e is DevengException) {
                 throw e
             } else {
-                val error = exceptionHandler.handleNetworkException(e)
+                val error = exceptionHandler?.handleNetworkException(e)
                 println(e.message)
                 println(e.cause)
-                throw DevengException(error)
+                throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
 
         }
@@ -260,12 +293,20 @@ public object DevengNetworkingModule {
         onError: (Throwable) -> Unit,
         onClose: (() -> Unit)? = null
     ): WebSocketConnection {
+        if (client == null) {
+            throw (IllegalStateException("Client is not initialized"))
+        }
+
+        if (exceptionHandler == null) {
+            throw (IllegalStateException("Exception handler is not initialized"))
+        }
+
         val fullUrl = "$socketBaseUrl$endpoint"
         val connection = WebSocketConnection.getConnection(
             endpoint = endpoint,
-            client = client,
+            client = client!!,
             url = fullUrl,
-            exceptionHandler = exceptionHandler
+            exceptionHandler = exceptionHandler!!
         )
         connection.start(
             onConnected = onConnected,
