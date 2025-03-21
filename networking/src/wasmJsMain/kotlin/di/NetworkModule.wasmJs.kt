@@ -8,7 +8,6 @@ import networking.util.createHttpClient
 internal actual object NetworkModule {
     actual val httpClient: HttpClient by lazy {
         if (!DevengNetworkingModule.loggingEnabled) {
-            println("Deveng..")
             suppressHttpLogs()
         }
         createHttpClient(Js.create())
@@ -16,9 +15,19 @@ internal actual object NetworkModule {
 }
 
 private fun suppressHttpLogs() {
-    js("""
+    js(
+        """
         (function() {
-            console.log("Deveng.");
+                    const asciiText = `
+██████╗ ███████╗██╗   ██╗███████╗███╗   ██╗ ██████╗ 
+██╔══██╗██╔════╝██║   ██║██╔════╝████╗  ██║██╔════╝ 
+██║  ██║█████╗  ██║   ██║█████╗  ██╔██╗ ██║██║  ███╗
+██║  ██║██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║██║   ██║
+██████╔╝███████╗ ╚████╔╝ ███████╗██║ ╚████║╚██████╔╝
+╚═════╝ ╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝ ╚═════╝ 
+        `;
+        console.log(asciiText);
+            
             // Store original console methods
             const originalConsoleError = console.error;
             const originalConsoleLog = console.log;
@@ -78,5 +87,6 @@ private fun suppressHttpLogs() {
                 }
             };
         })();
-    """)
+    """
+    )
 }

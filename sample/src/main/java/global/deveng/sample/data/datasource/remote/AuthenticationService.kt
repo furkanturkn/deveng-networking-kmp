@@ -32,7 +32,7 @@ class AuthenticationService {
         password: String
     ): AuthenticationResponse? {
         val requestBody = AuthenticationRequest(username, password)
-        println(requestBody.password)
+        //println(requestBody.password)
         try {
             /*
             val result =
@@ -55,7 +55,7 @@ class AuthenticationService {
                 )
             return result
         } catch (e: Exception) {
-            print(e.message)
+           // print(e.message)
         }
 
         return null

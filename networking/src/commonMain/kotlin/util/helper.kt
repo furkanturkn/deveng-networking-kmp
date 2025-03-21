@@ -5,6 +5,19 @@ import io.ktor.http.HttpMessageBuilder
 import io.ktor.http.URLBuilder
 import networking.DevengNetworkingModule
 
+public fun logDebug(
+    tag: String? = null,
+    message: Any?
+) {
+    if (DevengNetworkingModule.loggingEnabled) {
+        if (tag != null) {
+            println("[$tag] $message")
+        } else {
+            println(message)
+        }
+    }
+}
+
 /**
  * Extension function to add query parameters to the URL builder.
  */
@@ -39,11 +52,5 @@ public fun HttpMessageBuilder.setupAuthorizationHeader(token: String) {
 public fun HttpMessageBuilder.setupLocaleHeader(locale: String) {
     this.headers {
         append("language", locale)
-    }
-}
-
-internal fun customLog(message: String) {
-    if(DevengNetworkingModule.loggingEnabled){
-        println(message)
     }
 }

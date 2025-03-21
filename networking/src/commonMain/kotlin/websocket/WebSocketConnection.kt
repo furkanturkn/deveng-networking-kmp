@@ -6,16 +6,13 @@ import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import networking.exception_handling.ExceptionHandler
+import networking.util.logDebug
 import kotlin.coroutines.cancellation.CancellationException
 
 public class WebSocketConnection private constructor(
@@ -26,7 +23,7 @@ public class WebSocketConnection private constructor(
     private var session: DefaultClientWebSocketSession? = null
     private var connectionJob: Job? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    
+
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     public val connectionState: StateFlow<ConnectionState> = _connectionState
 
@@ -44,7 +41,7 @@ public class WebSocketConnection private constructor(
             while (connections.size > maxConnections) {
                 val oldestEndpoint = connections.keys.first()
                 closeConnection(oldestEndpoint)
-                println("New connection limit applied. Closing oldest connection: $oldestEndpoint")
+                logDebug(message = "New connection limit applied. Closing oldest connection: $oldestEndpoint")
             }
         }
 
@@ -61,7 +58,7 @@ public class WebSocketConnection private constructor(
             if (connections.size >= maxConnections) {
                 val oldestEndpoint = connections.keys.first()
                 closeConnection(oldestEndpoint)
-                println("Connection limit reached. Closing oldest connection: $oldestEndpoint")
+                logDebug(message = "Connection limit reached. Closing oldest connection: $oldestEndpoint")
             }
 
             return WebSocketConnection(client, url, exceptionHandler).also {
@@ -91,25 +88,25 @@ public class WebSocketConnection private constructor(
     ) {
         mutex.withLock {
             if (isClosing) {
-                println("Connection is currently closing, waiting for cleanup...")
+                logDebug(message = "Connection is currently closing, waiting for cleanup...")
                 return
             }
 
             if (_connectionState.value is ConnectionState.Connected) {
-                println("WebSocket is already connected to: $url")
+                logDebug(message = "WebSocket is already connected to: $url")
                 return
             }
 
             if (_connectionState.value is ConnectionState.Connecting) {
-                println("WebSocket is already connecting to: $url")
+                logDebug(message = "WebSocket is already connecting to: $url")
                 return
             }
 
             // Ensure clean state before starting
             cleanupInternal()
-            
+
             _connectionState.value = ConnectionState.Connecting
-            println("Starting new WebSocket connection to: $url")
+            logDebug(message = "Starting new WebSocket connection to: $url")
 
             connectionJob = scope.launch {
                 try {
@@ -117,7 +114,7 @@ public class WebSocketConnection private constructor(
                         session = this
                         try {
                             _connectionState.value = ConnectionState.Connected
-                            println("WebSocket connected successfully to: $url")
+                            logDebug(message = "WebSocket connected successfully to: $url")
                             onConnected(this@WebSocketConnection)
 
                             for (frame in incoming) {
@@ -129,24 +126,26 @@ public class WebSocketConnection private constructor(
                                         try {
                                             onMessageReceived(frame.readText())
                                         } catch (e: Exception) {
-                                            println("Error processing message: ${e.message}")
+                                            logDebug(message = "Error processing message: ${e.message}")
                                             val handled = exceptionHandler.handleNetworkException(e)
                                             onError(handled)
                                         }
                                     }
+
                                     is Frame.Close -> {
-                                        println("WebSocket received close frame")
+                                        logDebug(message = "WebSocket received close frame")
                                         onClose?.invoke()
                                         closeSessionInternal()
                                         break
                                     }
+
                                     else -> {
-                                        println("Unsupported frame type: $frame")
+                                        logDebug(message = "Unsupported frame type: $frame")
                                     }
                                 }
                             }
                         } catch (e: Exception) {
-                            println("WebSocket session error: ${e.message}")
+                            logDebug(message = "WebSocket session error: ${e.message}")
                             val handled = exceptionHandler.handleNetworkException(e)
                             _connectionState.value = ConnectionState.Error(handled)
                             onError(handled)
@@ -154,11 +153,11 @@ public class WebSocketConnection private constructor(
                         }
                     }
                 } catch (e: CancellationException) {
-                    println("WebSocket connection cancelled for: $url")
+                    logDebug(message = "WebSocket connection cancelled for: $url")
                     _connectionState.value = ConnectionState.Disconnected
                     closeSessionInternal()
                 } catch (e: Exception) {
-                    println("WebSocket connection error: ${e.message}")
+                    logDebug(message = "WebSocket connection error: ${e.message}")
                     val handled = exceptionHandler.handleNetworkException(e)
                     _connectionState.value = ConnectionState.Error(handled)
                     onError(handled)
@@ -174,6 +173,7 @@ public class WebSocketConnection private constructor(
                 session?.send(Frame.Text(message))
                     ?: throw IllegalStateException("WebSocket session is not open")
             }
+
             else -> throw IllegalStateException("Cannot send message when not connected. Current state: ${connectionState.value}")
         }
     }
@@ -187,12 +187,12 @@ public class WebSocketConnection private constructor(
     private suspend fun closeSessionInternal() {
         if (isClosing) return
         isClosing = true
-        
+
         try {
             connectionJob?.cancel()
             session?.close()
         } catch (e: Exception) {
-            println("Error closing WebSocket session: ${e.message}")
+            logDebug(message = "Error closing WebSocket session: ${e.message}")
         } finally {
             cleanupInternal()
             isClosing = false
@@ -204,6 +204,6 @@ public class WebSocketConnection private constructor(
         connectionJob = null
         session = null
         _connectionState.value = ConnectionState.Disconnected
-        println("WebSocket connection cleaned up for: $url")
+        logDebug(message = "WebSocket connection cleaned up for: $url")
     }
 }

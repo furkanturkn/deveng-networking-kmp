@@ -164,25 +164,25 @@ suspend fun exampleWebSocketUsage(
     onReceivedResponse: (String) -> Unit
 ) {
 
-        println("Attempting to connect to WebSocket endpoint: $endPoint")
-        DevengNetworkingModule.connectToWebSocket(
-            endpoint = endPoint,
-            onConnected = {
-                println("Successfully connected to $endPoint")
-                sendMessage("{\"protocol\":\"json\",\"version\":1}\u001E")
-            },
-            onMessageReceived = { message ->
-                val cleanResponse = message.trimEnd('\u001E')
-                onReceivedResponse(cleanResponse)
-            },
-            onError = { throwable ->
-                println("WebSocket error on $endPoint: ${throwable.message}")
-                throw throwable
-            },
-            onClose = {
-                println("WebSocket connection closed for $endPoint")
-                return@connectToWebSocket
-            }
-        )
+    println("Attempting to connect to WebSocket endpoint: $endPoint")
+    DevengNetworkingModule.connectToWebSocket(
+        endpoint = endPoint,
+        onConnected = {
+            println("Successfully connected to $endPoint")
+            sendMessage("{\"protocol\":\"json\",\"version\":1}\u001E")
+        },
+        onMessageReceived = { message ->
+            val cleanResponse = message.trimEnd('\u001E')
+            onReceivedResponse(cleanResponse)
+        },
+        onError = { throwable ->
+            println("WebSocket error on $endPoint: ${throwable.message}")
+            throw throwable
+        },
+        onClose = {
+            println("WebSocket connection closed for $endPoint")
+            return@connectToWebSocket
+        }
+    )
 
 }

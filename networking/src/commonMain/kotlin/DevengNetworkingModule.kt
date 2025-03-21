@@ -120,7 +120,7 @@ public object DevengNetworkingModule {
                     try {
                         errorResponse = Json.decodeFromString<ErrorResponse>(response.body())
                     } catch (e: Exception) {
-                        println("Cannot decode error response")
+                        logDebug(message = "Cannot decode error response")
                     }
 
                     val error = exceptionHandler?.handleHttpException(
@@ -135,8 +135,8 @@ public object DevengNetworkingModule {
                 throw e
             } else {
                 val error = exceptionHandler?.handleNetworkException(e)
-                println(e.message)
-                println(e.cause)
+                logDebug(message = e.message)
+                logDebug(message = e.cause)
                 throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
 
@@ -196,7 +196,7 @@ public object DevengNetworkingModule {
                         errorResponse =
                             Json.decodeFromString(ErrorResponse.serializer(), response.bodyAsText())
                     } catch (e: Exception) {
-                        customLog("Cannot decode error response")
+                        logDebug(message = "Cannot decode error response")
                     }
 
                     val error = exceptionHandler?.handleHttpException(
@@ -211,7 +211,7 @@ public object DevengNetworkingModule {
                 throw e
             } else {
                 val error = exceptionHandler?.handleNetworkException(e)
-                customLog(e.message.toString())
+                logDebug(message = e.message.toString())
                 throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
         }
@@ -263,7 +263,7 @@ public object DevengNetworkingModule {
                     try {
                         errorResponse = Json.decodeFromString<ErrorResponse>(response.body())
                     } catch (e: Exception) {
-                        println("Cannot decode error response")
+                        logDebug(message = "Cannot decode error response")
                     }
 
                     val error = exceptionHandler?.handleHttpException(
@@ -278,8 +278,8 @@ public object DevengNetworkingModule {
                 throw e
             } else {
                 val error = exceptionHandler?.handleNetworkException(e)
-                println(e.message)
-                println(e.cause)
+                logDebug(message = e.message)
+                logDebug(message = e.cause)
                 throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
 
