@@ -19,12 +19,6 @@ internal fun createHttpClient(engine: HttpClientEngine): HttpClient {
             }
         }
 
-        install(HttpTimeout) {
-            requestTimeoutMillis = DevengNetworkingModule.requestTimeoutMillis
-            connectTimeoutMillis = DevengNetworkingModule.connectTimeoutMillis
-            socketTimeoutMillis = DevengNetworkingModule.socketTimeoutMillis
-        }
-
         install(ContentNegotiation) {
             json(
                 json = Json {
