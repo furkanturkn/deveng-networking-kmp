@@ -129,26 +129,18 @@ mavenPublishing {
     }
 }
 
-fun getCommitCount(): String {
-    val stdout = ByteArrayOutputStream()
-    project.exec {
-        commandLine = listOf("git", "rev-list", "--count", "HEAD")
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()
-}
 
 fun generateVersionName(): String {
     val versionMajor = libs.versions.app.version.major.get()
     val appVersionCode = libs.versions.app.version.code.get()
 
-    val commitCount = getCommitCount()
+    val minorVersion = libs.versions.app.minor.version.get()
 
     return StringBuilder().apply {
         append(versionMajor)
         append(".")
         append(appVersionCode)
         append(".")
-        append(commitCount)
+        append(minorVersion)
     }.toString()
 }
