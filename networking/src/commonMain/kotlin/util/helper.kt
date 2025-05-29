@@ -54,3 +54,14 @@ public fun HttpMessageBuilder.setupLocaleHeader(locale: String) {
         append("language", locale)
     }
 }
+
+/**
+ * Extension function to set extra custom headers in the request builder.
+ */
+public fun HttpMessageBuilder.setupCustomHeaders(customHeaders: Map<String, String>) {
+    this.headers {
+        customHeaders.forEach { (key, value) ->
+            append(key, value)
+        }
+    }
+}

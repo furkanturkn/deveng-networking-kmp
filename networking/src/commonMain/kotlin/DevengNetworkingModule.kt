@@ -29,6 +29,8 @@ public object DevengNetworkingModule {
 
     public var token: String = ""
 
+    public var customHeaders: Map<String, String> = emptyMap()
+
     public var client: HttpClient? = null
 
     public var exceptionHandler: ExceptionHandler? = null
@@ -38,12 +40,14 @@ public object DevengNetworkingModule {
         socketBaseUrl: String,
         loggingEnabled: Boolean = true,
         token: String = "",
-        locale: Locale? = null
+        locale: Locale? = null,
+        customHeaders: Map<String, String> = emptyMap()
     ) {
         setApiBaseUrl(restBaseUrl)
         setWebSocketBaseUrl(socketBaseUrl)
         setLoggingState(loggingEnabled)
         setBearerToken(token)
+        setCustomDnmHeaders(customHeaders)
         if (locale != null) {
             setLocale(locale)
         }
@@ -66,6 +70,10 @@ public object DevengNetworkingModule {
 
     public fun setBearerToken(token: String) {
         this.token = token
+    }
+
+    public fun setCustomDnmHeaders(headers: Map<String, String>) {
+        this.customHeaders = headers
     }
 
     public fun setLocale(locale: Locale) {
@@ -101,6 +109,8 @@ public object DevengNetworkingModule {
                         locale = exceptionHandler?.locale.toString()
                     )
                 }
+
+                setupCustomHeaders(customHeaders)
 
                 url {
                     addQueryParameters(queryParameters = queryParameters)
@@ -174,6 +184,8 @@ public object DevengNetworkingModule {
                     )
                 }
 
+                setupCustomHeaders(customHeaders)
+
                 url {
                     addQueryParameters(queryParameters = queryParameters)
                 }
@@ -244,6 +256,8 @@ public object DevengNetworkingModule {
                 setupLocaleHeader(
                     locale = exceptionHandler?.locale.toString()
                 )
+
+                setupCustomHeaders(customHeaders)
 
                 url {
                     addQueryParameters(queryParameters = queryParameters)
