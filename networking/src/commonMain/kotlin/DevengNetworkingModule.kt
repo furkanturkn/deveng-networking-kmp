@@ -42,9 +42,9 @@ public object DevengNetworkingModule {
     private var restBaseUrl: String = ""
     // Internal getters for HTTP client configuration
     internal val loggingEnabled: Boolean get() = config?.loggingEnabled ?: true
-    internal val requestTimeoutMillis: Long get() = config?.requestTimeoutMillis ?: 60_000L
+    internal val requestTimeoutMillis: Long get() = config?.requestTimeoutMillis ?: 10_000L
     internal val connectTimeoutMillis: Long get() = config?.connectTimeoutMillis ?: 10_000L
-    internal val socketTimeoutMillis: Long get() = config?.socketTimeoutMillis ?: 60_000L
+    internal val socketTimeoutMillis: Long get() = config?.socketTimeoutMillis ?: 10_000L
 
     public fun initDevengNetworkingModule(
         restBaseUrl: String,
@@ -67,6 +67,9 @@ public object DevengNetworkingModule {
     public fun getToken(): String = config?.token ?: ""
     public fun getCustomHeaders(): Map<String, String> = config?.customHeaders ?: emptyMap()
 
+    public fun setToken(newToken: String) {
+        config = config?.copy(token = newToken)
+    }
 
     public suspend inline fun <reified T, reified R> sendRequest(
         endpoint: String,
