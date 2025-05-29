@@ -1,7 +1,7 @@
-# Deveng Networking Module
+# Deveng Networking KMP
 
-The **Deveng Networking Module** is a Kotlin-based networking solution designed to simplify REST API communication and WebSocket management.
-It provides a unified API for handling network requests, token-based authentication, localization, and
+The **Deveng Networking KMP** is a Kotlin Multiplatform networking solution designed to simplify REST API communication and WebSocket management.
+It provides a unified API for handling network requests, token-based authentication, localization, custom headers, and
 advanced error handling with minimal setup. This library is tailored for projects requiring a robust, reusable, 
 and multiplatform-friendly networking layer.
 
@@ -12,26 +12,31 @@ and multiplatform-friendly networking layer.
 2. [Features](#features)
 3. [Platform Support](#platform-support)
 4. [Installation](#installation)
-5. [Initialization](#initialization)
-6. [REST API Calls](#rest-api-calls)
-7. [WebSocket Connections](#websocket-connections)
-8. [Error Handling](#error-handling)
-9. [How It Works](#how-it-works)
-10. [License](#license)
-11. [Contributing](#contributing)
+5. [Quick Start](#quick-start)
+6. [Initialization](#initialization)
+7. [REST API Calls](#rest-api-calls)
+8. [WebSocket Connections](#websocket-connections)
+9. [Error Handling](#error-handling)
+10. [Advanced Usage](#advanced-usage)
+11. [How It Works](#how-it-works)
+12. [License](#license)
+13. [Contributing](#contributing)
 
 ---
 
 ## Introduction
 
-The **Deveng Networking Module** was created to streamline the complexities of managing network requests 
-and WebSocket connections in Kotlin projects.
-The module integrates with `Ktor` for HTTP client operations and includes robust tools for error handling, token management, and localization.
+The **Deveng Networking KMP** was created by [Deveng Group](https://github.com/Deveng-Group) to streamline the complexities of managing network requests 
+and WebSocket connections in Kotlin Multiplatform projects.
+The module integrates with `Ktor` for HTTP client operations and includes robust tools for error handling, token management, custom headers, and localization.
 
 This module aims to:
 - Reduce boilerplate code for networking operations.
 - Provide customizable error handling for REST API calls and WebSocket connections.
 - Offer a flexible and reusable API suitable for any Kotlin Multiplatform project.
+- Support custom headers and configurable logging.
+
+**Learn more about Deveng Group**: [deveng.global](https://deveng.global)
 
 ---
 
@@ -40,11 +45,14 @@ This module aims to:
 - 🌐 **Full REST API Support**: Seamless handling of HTTP methods like GET, POST, PUT, and DELETE.
 - 🔄 **WebSocket Client with Connection Management**: Manage WebSocket lifecycle events, such as connection establishment, message handling, and graceful disconnection.
 - ⚡ **Efficient WebSocket Connection Pooling**: Optimize resource usage by managing multiple WebSocket connections simultaneously with connection pooling.
-- 🎯 **Multiplatform Support**: Fully compatible with Android, iOS, and Desktop (Web support is experimental).
+- 🎯 **Multiplatform Support**: Fully compatible with Android, iOS, Desktop (JVM), and WebAssembly.
 - 🔒 **Token-Based Authentication**: Built-in support for secure API calls.
 - 🌍 **Localization**: Localized error messages and header support.
 - 🎭 **Error Handling**: Centralized and customizable exception handling.
 - 🛠️ **Dynamic Parameters**: Easily manage path and query parameters.
+- 📋 **Custom Headers**: Support for adding custom headers to requests.
+- 🔧 **Configurable Logging**: Optional logging that can be enabled or disabled.
+- 🚀 **Easy Initialization**: Single function initialization with all configuration options.
 
 ---
 
@@ -53,7 +61,7 @@ This module aims to:
 - 🤖 Android
 - 🍎 iOS
 - 🖥️ Desktop (JVM)
-- 🌐 Web (Experimental)
+- 🌐 WebAssembly (WASM)
 
 ---
 
@@ -63,7 +71,7 @@ This module aims to:
 If you are not using a version catalog add the following dependency to your project:
 ```kotlin
 dependencies {
-    implementation("global.deveng:networking-kmp:1.2.0")
+    implementation("global.deveng:networking-kmp:2.6.+")
 }
 ```
 
@@ -71,7 +79,7 @@ dependencies {
 If you are using a version catalog add the following to your version Catalog:
 ```toml
 [versions]
-devengNetworkingKmp = "1.2.0"
+devengNetworkingKmp = "2.6.+"
 
 [libraries]
 deveng-networking-kmp = { module = "global.deveng:networking-kmp", version.ref = "devengNetworkingKmp" }
@@ -86,9 +94,88 @@ dependencies {
 
 ---
 
+## Quick Start
+
+Get up and running in 3 simple steps:
+
+> **⚠️ Important Note**: The inline version of `sendRequest` requires **Gradle Java version 21+**. If you're using an older Java version, use the custom serializer version instead (see [Alternative for Older Java Versions](#alternative-for-older-java-versions) below).
+
+### 1. Initialize the Module
+
+```kotlin
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    socketBaseUrl = "wss://ws.example.com"
+)
+```
+
+### 2. Make Your First API Call
+
+```kotlin
+// Simple GET request (requires Java 21+)
+suspend fun getUser(userId: String): User? {
+    return DevengNetworkingModule.sendRequest<Unit, User?>(
+        endpoint = "/users/{userId}",
+        requestMethod = DevengHttpMethod.GET,
+        pathParameters = mapOf("userId" to userId)
+    )
+}
+```
+
+### 3. Connect to WebSocket (Optional)
+
+```kotlin
+// Simple WebSocket connection
+val connection = DevengNetworkingModule.connectToWebSocket(
+    endpoint = "/chat",
+    onConnected = { sendMessage("Hello!") },
+    onMessageReceived = { message -> println("Received: $message") },
+    onError = { error -> println("Error: $error") }
+)
+```
+
+### Alternative for Older Java Versions
+
+If you're using **Java version < 21**, use the custom serializer version:
+
+```kotlin
+// For Java versions below 21
+suspend fun getUser(userId: String): User {
+    return DevengNetworkingModule.sendRequest(
+        endpoint = "/users/{userId}",
+        requestMethod = DevengHttpMethod.GET,
+        pathParameters = mapOf("userId" to userId),
+        requestSerializer = null, // No request body
+        responseSerializer = User.serializer()
+    )
+}
+```
+
+That's it! You're ready to go. For more detailed configuration and advanced features, see the sections below.
+
+---
+
 ## Initialization
 
-Before using the module, initialize it with your application’s API configurations.
+The module now provides a convenient initialization function that configures all settings in one place:
+
+### Recommended: Single Function Initialization
+
+```kotlin
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    socketBaseUrl = "wss://ws.example.com",
+    loggingEnabled = true, // Optional, defaults to true
+    token = "your-auth-token", // Optional
+    locale = Locale.EN, // Optional
+    customHeaders = mapOf( // Optional
+        "X-API-Version" to "1.0",
+        "X-Client-Platform" to "Android"
+    )
+)
+```
+
+### Alternative: Manual Configuration (Legacy Support)
 
 ```kotlin
 // Set the base URL for REST API requests
@@ -100,6 +187,12 @@ DevengNetworkingModule.setWebSocketBaseUrl("wss://ws.example.com")
 // Optional: Set the authentication token for secured API calls
 DevengNetworkingModule.setBearerToken("your-auth-token")
 
+// Optional: Set custom headers for all requests
+DevengNetworkingModule.setCustomDnmHeaders(mapOf(
+    "X-API-Version" to "1.0",
+    "X-Client-Platform" to "Android"
+))
+
 // Optional: Set the localization for error messages and headers
 DevengNetworkingModule.setLocale(Locale.EN)
 ```
@@ -107,6 +200,10 @@ DevengNetworkingModule.setLocale(Locale.EN)
 ---
 
 ## REST API Calls
+
+> **⚠️ Java Version Compatibility**: 
+> - **Inline version** (with `<T, R>` generics): Requires **Java 21+**
+> - **Custom serializer version**: Works with **any Java version**
 
 The sendRequest function provides a flexible, type-safe way to interact with REST APIs. It uses Kotlin's
 generics (<T, R>) to specify the type of the request body and the expected response. Below are examples 
@@ -120,6 +217,8 @@ data class CreateResourceRequest(val name: String, val type: String)
 data class UpdateResourceRequest(val id: String, val active: Boolean, val value: Double)
 data class DeleteResourceRequest(val id:String)
 ```
+
+### Inline Version (Java 21+ Required)
 
 ```kotlin
 // GET Request with path parameters
@@ -184,6 +283,78 @@ suspend fun deleteResourceById(resourceId: String) {
 }
 ```
 
+### Custom Serializer Version (Any Java Version)
+
+If you're using Java version below 21, use these examples instead:
+
+```kotlin
+// GET Request with path parameters
+suspend fun getResourceById(resourceId: String): YourResponseType {
+    return DevengNetworkingModule.sendRequest(
+        endpoint = "/resources/{resourceId}",
+        requestMethod = DevengHttpMethod.GET,
+        pathParameters = mapOf("resourceId" to resourceId),
+        requestSerializer = null, // No request body
+        responseSerializer = YourResponseType.serializer()
+    )
+}
+
+// POST Request with body
+suspend fun createResource(resourceName: String, resourceType: String) {
+    val requestBody = CreateResourceRequest(
+        name = resourceName,
+        type = resourceType
+    )
+    DevengNetworkingModule.sendRequest(
+        endpoint = "/resources",
+        requestBody = requestBody,
+        requestMethod = DevengHttpMethod.POST,
+        requestSerializer = CreateResourceRequest.serializer(),
+        responseSerializer = Unit.serializer()
+    )
+}
+
+// GET Request with query parameters
+suspend fun searchResources(query: String): List<YourResponseType> {
+    return DevengNetworkingModule.sendRequest(
+        endpoint = "/resources/search",
+        requestMethod = DevengHttpMethod.GET,
+        queryParameters = mapOf("query" to query),
+        requestSerializer = null, // No request body
+        responseSerializer = ListSerializer(YourResponseType.serializer())
+    )
+}
+
+// PUT Request with path parameters and a body
+suspend fun updateResource(resourceId: String, isActive: Boolean, resourceValue: Double) {
+    val requestBody = UpdateResourceRequest(
+        id = resourceId,
+        active = isActive,
+        value = resourceValue
+    )
+
+    DevengNetworkingModule.sendRequest(
+        endpoint = "/resources/{resourceId}",
+        requestBody = requestBody,
+        requestMethod = DevengHttpMethod.PUT,
+        pathParameters = mapOf("resourceId" to resourceId),
+        requestSerializer = UpdateResourceRequest.serializer(),
+        responseSerializer = Unit.serializer()
+    )
+}
+
+// DELETE Request
+suspend fun deleteResourceById(resourceId: String) {
+    DevengNetworkingModule.sendRequest(
+        endpoint = "/resources/{resourceId}",
+        requestMethod = DevengHttpMethod.DELETE,
+        pathParameters = mapOf("resourceId" to resourceId),
+        requestSerializer = null, // No request body
+        responseSerializer = Unit.serializer()
+    )
+}
+```
+
 ---
 
 ## WebSocket Connections
@@ -198,7 +369,7 @@ val connection = DevengNetworkingModule.connectToWebSocket(
     onConnected = {
         // Connection established
         sendMessage("Hello Server!") 
-        // This message here is usually the hand shake with the websocket.
+        // This message here is usually the handshake with the websocket.
     },
     onMessageReceived = { message ->
         // Handle incoming message
@@ -245,10 +416,14 @@ WebSocketConnection.setMaxConnections(3) // Default is 5
 val activeConnections = WebSocketConnection.getActiveConnections()
 val connectionCount = WebSocketConnection.getConnectionCount()
 
-// Close specific connection
-WebSocketConnection.closeConnection("/realtime")
+// Close specific connection using the module methods
+DevengNetworkingModule.closeWebSocketConnection("/realtime")
 
-// Close all connections
+// Close all connections using the module methods
+DevengNetworkingModule.closeAllWebSocketConnections()
+
+// Or use WebSocketConnection directly
+WebSocketConnection.closeConnection("/realtime")
 WebSocketConnection.closeAll()
 ```
 
@@ -296,10 +471,82 @@ class CustomExceptionHandler : ExceptionHandler {
 
 ---
 
-## Advanced Info About Module
+## Advanced Usage
 
-The **DevengNetworkingModule** operates as a wrapper around the `Ktor` HTTP client and WebSocket API,
-providing simplified functionality for REST API calls and WebSocket connections. Here’s an overview 
+### Custom Headers
+
+The module supports adding custom headers to all requests:
+
+```kotlin
+// Set custom headers during initialization
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    socketBaseUrl = "wss://ws.example.com",
+    customHeaders = mapOf(
+        "X-API-Version" to "1.0",
+        "X-Client-Platform" to "Android",
+        "X-Device-ID" to "unique-device-id"
+    )
+)
+
+// Or set them separately
+DevengNetworkingModule.setCustomDnmHeaders(mapOf(
+    "X-Custom-Header" to "custom-value"
+))
+```
+
+### Configurable Logging
+
+Control logging output for debugging and production environments:
+
+```kotlin
+// Enable logging (default is true)
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    socketBaseUrl = "wss://ws.example.com",
+    loggingEnabled = true // Set to false in production if needed
+)
+```
+
+### Using Custom Serializers
+
+For advanced use cases, you can use custom serializers:
+
+```kotlin
+suspend fun customSerializationRequest() {
+    val response = DevengNetworkingModule.sendRequest(
+        endpoint = "/custom",
+        requestBody = customData,
+        requestMethod = DevengHttpMethod.POST,
+        requestSerializer = CustomData.serializer(),
+        responseSerializer = CustomResponse.serializer()
+    )
+}
+```
+
+### Getting Raw HTTP Response
+
+For cases where you need access to the raw HTTP response:
+
+```kotlin
+suspend fun getRawResponse() {
+    val httpResponse = DevengNetworkingModule.sendRequestForHttpResponse<Unit>(
+        endpoint = "/raw",
+        requestMethod = DevengHttpMethod.GET
+    )
+    
+    // Access status, headers, etc.
+    println("Status: ${httpResponse.status}")
+    println("Headers: ${httpResponse.headers}")
+}
+```
+
+---
+
+## How It Works
+
+The **Deveng Networking KMP** operates as a wrapper around the `Ktor` HTTP client and WebSocket API,
+providing simplified functionality for REST API calls and WebSocket connections. Here's an overview 
 of its main components:
 
 ### 1. REST API Requests (`sendRequest`)
@@ -309,6 +556,7 @@ of its main components:
 - **Headers Management**:
     - The module automatically adds an `Authorization` header if a Bearer token is set.
     - It also adds a `Locale` header for localization, based on the configured locale in the `ExceptionHandler`.
+    - Custom headers are automatically included in all requests.
 - **Request Body**:
     - If a request body (`T`) is provided, it is serialized into JSON format, and the `Content-Type: application/json` header is added.
 - **Response Handling**:
@@ -322,6 +570,9 @@ of its main components:
 ### 2. WebSocket Connections (`connectToWebSocket`)
 - **Connection Setup**:
     - The WebSocket URL is built dynamically by combining the WebSocket base URL and the endpoint.
+- **Connection Pooling**:
+    - Manages multiple connections with configurable limits.
+    - Automatically closes oldest connections when limits are reached.
 - **Lifecycle Callbacks**:
     - Provides hooks for:
         - `onConnected`: Triggered when the WebSocket connection is established.
@@ -337,7 +588,12 @@ of its main components:
     - Map HTTP status codes or network errors to user-friendly `DevengException` objects.
     - Handle cases where error bodies cannot be parsed or decoded.
 
-By encapsulating these functionalities, the **DevengNetworkingModule** provides a streamlined interface for managing REST API and WebSocket interactions while handling errors in a consistent and customizable manner.
+### 4. Initialization and Configuration
+- **Single Point Configuration**: The `initDevengNetworkingModule` function provides a centralized way to configure all module settings.
+- **Dependency Injection**: Uses internal DI to manage HTTP client and exception handler instances.
+- **Logging Control**: Configurable logging that can be enabled or disabled based on environment needs.
+
+By encapsulating these functionalities, the **Deveng Networking KMP** provides a streamlined interface for managing REST API and WebSocket interactions while handling errors in a consistent and customizable manner.
 
 ---
 
@@ -355,4 +611,6 @@ Contributions are welcome! Follow these steps:
 3. Submit a pull request for review. 
 
 For significant changes, please open an issue to discuss your proposal first.
+
+**More Projects**: Check out other projects by [Deveng Group](https://github.com/Deveng-Group) | **Website**: [deveng.global](https://deveng.global)
 
