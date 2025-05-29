@@ -5,11 +5,13 @@ import error_handling.DevengException
 import error_handling.DevengUiError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMessageBuilder
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.KSerializer
@@ -21,64 +23,50 @@ import networking.util.*
 import util.ErrorResponse
 import websocket.WebSocketConnection
 
+public data class DevengNetworkingConfig(
+    val loggingEnabled: Boolean = true,
+    val requestTimeoutMillis: Long = 60_000L,
+    val connectTimeoutMillis: Long = 10_000L,
+    val socketTimeoutMillis: Long = 60_000L,
+    val token: String = "",
+    val locale: Locale? = null,
+    val customHeaders: Map<String, String> = emptyMap(),
+    val socketBaseUrl: String = ""
+)
+
 public object DevengNetworkingModule {
-    public var restBaseUrl: String = ""
-    public var socketBaseUrl: String = ""
-
-    public var loggingEnabled: Boolean = true
-
-    public var token: String = ""
-
-    public var customHeaders: Map<String, String> = emptyMap()
-
     public var client: HttpClient? = null
-
     public var exceptionHandler: ExceptionHandler? = null
+
+    private var config: DevengNetworkingConfig? = null
+    private var restBaseUrl: String = ""
+    // Internal getters for HTTP client configuration
+    internal val loggingEnabled: Boolean get() = config?.loggingEnabled ?: true
+    internal val requestTimeoutMillis: Long get() = config?.requestTimeoutMillis ?: 60_000L
+    internal val connectTimeoutMillis: Long get() = config?.connectTimeoutMillis ?: 10_000L
+    internal val socketTimeoutMillis: Long get() = config?.socketTimeoutMillis ?: 60_000L
 
     public fun initDevengNetworkingModule(
         restBaseUrl: String,
-        socketBaseUrl: String,
-        loggingEnabled: Boolean = true,
-        token: String = "",
-        locale: Locale? = null,
-        customHeaders: Map<String, String> = emptyMap()
+        config: DevengNetworkingConfig
     ) {
-        setApiBaseUrl(restBaseUrl)
-        setWebSocketBaseUrl(socketBaseUrl)
-        setLoggingState(loggingEnabled)
-        setBearerToken(token)
-        setCustomDnmHeaders(customHeaders)
-        if (locale != null) {
-            setLocale(locale)
+        this.config = config
+        this.restBaseUrl = restBaseUrl
+        
+        if (config.locale != null) {
+            exceptionHandler?.locale = config.locale
         }
 
         client = NetworkModule.httpClient
         exceptionHandler = CoreModule.exceptionHandler
     }
 
-    private fun setLoggingState(enabled: Boolean) {
-        this.loggingEnabled = enabled
-    }
+    // Internal getters for request handling
+    public fun getRestBaseUrl(): String = restBaseUrl
+    public fun getSocketBaseUrl(): String = config?.socketBaseUrl ?: ""
+    public fun getToken(): String = config?.token ?: ""
+    public fun getCustomHeaders(): Map<String, String> = config?.customHeaders ?: emptyMap()
 
-    public fun setApiBaseUrl(url: String) {
-        this.restBaseUrl = url
-    }
-
-    public fun setWebSocketBaseUrl(url: String) {
-        this.socketBaseUrl = url
-    }
-
-    public fun setBearerToken(token: String) {
-        this.token = token
-    }
-
-    public fun setCustomDnmHeaders(headers: Map<String, String>) {
-        this.customHeaders = headers
-    }
-
-    public fun setLocale(locale: Locale) {
-        exceptionHandler?.locale = locale
-    }
 
     public suspend inline fun <reified T, reified R> sendRequest(
         endpoint: String,
@@ -92,29 +80,14 @@ public object DevengNetworkingModule {
                 throw (IllegalStateException("Client is not initialized"))
             }
 
-
-            val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
-
             val response: HttpResponse = client!!.request(
-                urlString = "$restBaseUrl$resolvedEndpoint"
+                urlString = buildRequestUrl(endpoint, pathParameters)
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
-                setupAuthorizationHeader(
-                    token = token
-                )
+                setupAllHeaders()
 
-                if (exceptionHandler?.locale != null) {
-                    setupLocaleHeader(
-                        locale = exceptionHandler?.locale.toString()
-                    )
-                }
-
-                setupCustomHeaders(customHeaders)
-
-                url {
-                    addQueryParameters(queryParameters = queryParameters)
-                }
+                setupQueryParameters(queryParameters)
 
                 if (requestBody != null) {
                     contentType(ContentType.Application.Json)
@@ -149,7 +122,6 @@ public object DevengNetworkingModule {
                 logDebug(message = e.cause)
                 throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
-
         }
     }
 
@@ -167,28 +139,14 @@ public object DevengNetworkingModule {
         }
 
         return try {
-            val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
-
             val response: HttpResponse = client!!.request(
-                urlString = "$restBaseUrl$resolvedEndpoint"
+                urlString = buildRequestUrl(endpoint, pathParameters)
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
-                setupAuthorizationHeader(
-                    token = token
-                )
+                setupAllHeaders()
 
-                if (exceptionHandler?.locale != null) {
-                    setupLocaleHeader(
-                        locale = exceptionHandler?.locale.toString()
-                    )
-                }
-
-                setupCustomHeaders(customHeaders)
-
-                url {
-                    addQueryParameters(queryParameters = queryParameters)
-                }
+                setupQueryParameters(queryParameters)
 
                 if (requestBody != null && requestSerializer != null) {
                     contentType(ContentType.Application.Json)
@@ -229,7 +187,6 @@ public object DevengNetworkingModule {
         }
     }
 
-
     public suspend inline fun <reified T> sendRequestForHttpResponse(
         endpoint: String,
         requestBody: T? = null,
@@ -242,26 +199,14 @@ public object DevengNetworkingModule {
         }
 
         return try {
-            val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
-
             val response: HttpResponse = client!!.request(
-                urlString = "$restBaseUrl$resolvedEndpoint"
+                urlString = buildRequestUrl(endpoint, pathParameters)
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
-                setupAuthorizationHeader(
-                    token = token
-                )
+                setupAllHeaders()
 
-                setupLocaleHeader(
-                    locale = exceptionHandler?.locale.toString()
-                )
-
-                setupCustomHeaders(customHeaders)
-
-                url {
-                    addQueryParameters(queryParameters = queryParameters)
-                }
+                setupQueryParameters(queryParameters)
 
                 if (requestBody != null) {
                     contentType(ContentType.Application.Json)
@@ -296,7 +241,6 @@ public object DevengNetworkingModule {
                 logDebug(message = e.cause)
                 throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
-
         }
     }
 
@@ -315,7 +259,7 @@ public object DevengNetworkingModule {
             throw (IllegalStateException("Exception handler is not initialized"))
         }
 
-        val fullUrl = "$socketBaseUrl$endpoint"
+        val fullUrl = "${getSocketBaseUrl()}$endpoint"
         val connection = WebSocketConnection.getConnection(
             endpoint = endpoint,
             client = client!!,

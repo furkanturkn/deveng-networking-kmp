@@ -52,6 +52,7 @@ This module aims to:
 - 🛠️ **Dynamic Parameters**: Easily manage path and query parameters.
 - 📋 **Custom Headers**: Support for adding custom headers to requests.
 - 🔧 **Configurable Logging**: Optional logging that can be enabled or disabled.
+- ⏱️ **Timeout Configuration**: Configurable request, connection, and socket timeouts.
 - 🚀 **Easy Initialization**: Single function initialization with all configuration options.
 
 ---
@@ -103,9 +104,16 @@ Get up and running in 3 simple steps:
 ### 1. Initialize the Module
 
 ```kotlin
+val config = DevengNetworkingConfig(
+    loggingEnabled = true,
+    requestTimeoutMillis = 30_000L,  // 30 seconds
+    token = "your-auth-token",
+    socketBaseUrl = "wss://ws.example.com" // Optional, only needed for WebSocket
+)
+
 DevengNetworkingModule.initDevengNetworkingModule(
     restBaseUrl = "https://api.example.com",
-    socketBaseUrl = "wss://ws.example.com"
+    config = config
 )
 ```
 
@@ -157,44 +165,148 @@ That's it! You're ready to go. For more detailed configuration and advanced feat
 
 ## Initialization
 
-The module now provides a convenient initialization function that configures all settings in one place:
+The module uses a clean configuration data class approach for initialization:
 
-### Recommended: Single Function Initialization
+### Configuration Data Class
 
 ```kotlin
-DevengNetworkingModule.initDevengNetworkingModule(
-    restBaseUrl = "https://api.example.com",
-    socketBaseUrl = "wss://ws.example.com",
+val config = DevengNetworkingConfig(
     loggingEnabled = true, // Optional, defaults to true
+    requestTimeoutMillis = 60_000L, // Optional, defaults to 60 seconds
+    connectTimeoutMillis = 10_000L, // Optional, defaults to 10 seconds
+    socketTimeoutMillis = 60_000L,  // Optional, defaults to 60 seconds
     token = "your-auth-token", // Optional
     locale = Locale.EN, // Optional
     customHeaders = mapOf( // Optional
         "X-API-Version" to "1.0",
         "X-Client-Platform" to "Android"
-    )
+    ),
+    socketBaseUrl = "wss://ws.example.com" // Optional, only needed for WebSocket connections
+)
+
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    config = config
 )
 ```
 
-### Alternative: Manual Configuration (Legacy Support)
+### Timeout Configuration
+
+Configure timeouts to handle slow or unresponsive servers:
 
 ```kotlin
-// Set the base URL for REST API requests
-DevengNetworkingModule.setApiBaseUrl("https://api.example.com")
+// Configuration for file upload scenarios
+val uploadConfig = DevengNetworkingConfig(
+    requestTimeoutMillis = 300_000L,  // 5 minutes for large uploads
+    connectTimeoutMillis = 15_000L,   // 15 seconds to connect
+    socketTimeoutMillis = 120_000L    // 2 minutes between data packets
+)
 
-// Set the base URL for WebSocket connections
-DevengNetworkingModule.setWebSocketBaseUrl("wss://ws.example.com")
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    config = uploadConfig
+)
 
-// Optional: Set the authentication token for secured API calls
-DevengNetworkingModule.setBearerToken("your-auth-token")
+// Or set them separately after initialization
+DevengNetworkingModule.setTimeouts(
+    requestTimeoutMillis = 120_000L,  // 2 minutes for file uploads
+    connectTimeoutMillis = 15_000L,   // 15 seconds connect timeout
+    socketTimeoutMillis = 90_000L     // 1.5 minutes socket timeout
+)
 
-// Optional: Set custom headers for all requests
-DevengNetworkingModule.setCustomDnmHeaders(mapOf(
-    "X-API-Version" to "1.0",
-    "X-Client-Platform" to "Android"
-))
+// Set individual timeout values
+DevengNetworkingModule.setRequestTimeout(30_000L)  // 30 seconds
+DevengNetworkingModule.setConnectTimeout(8_000L)   // 8 seconds
+DevengNetworkingModule.setSocketTimeout(60_000L)   // 60 seconds
+```
 
-// Optional: Set the localization for error messages and headers
-DevengNetworkingModule.setLocale(Locale.EN)
+**Timeout Types Explained:**
+- **Request Timeout**: Total time from sending request to receiving complete response
+- **Connect Timeout**: Time allowed to establish initial connection with server
+- **Socket Timeout**: Maximum time of inactivity between data packets
+
+### Using Custom Serializers
+
+For advanced use cases, you can use custom serializers:
+
+```kotlin
+suspend fun customSerializationRequest() {
+    val response = DevengNetworkingModule.sendRequest(
+        endpoint = "/custom",
+        requestBody = customData,
+        requestMethod = DevengHttpMethod.POST,
+        requestSerializer = CustomData.serializer(),
+        responseSerializer = CustomResponse.serializer()
+    )
+}
+```
+
+### Getting Raw HTTP Response
+
+For cases where you need access to the raw HTTP response:
+
+```kotlin
+suspend fun getRawResponse() {
+    val httpResponse = DevengNetworkingModule.sendRequestForHttpResponse<Unit>(
+        endpoint = "/raw",
+        requestMethod = DevengHttpMethod.GET
+    )
+    
+    // Access status, headers, etc.
+    println("Status: ${httpResponse.status}")
+    println("Headers: ${httpResponse.headers}")
+}
+```
+
+### 4. Initialization and Configuration
+- **Configuration Data Class**: The `DevengNetworkingConfig` provides a clean, type-safe way to configure all module settings.
+- **Single Point Configuration**: All settings are configured in one place for better maintainability.
+- **Dependency Injection**: Uses internal DI to manage HTTP client and exception handler instances.
+- **Logging Control**: Configurable logging that can be enabled or disabled based on environment needs.
+
+### Common Configuration Examples
+
+```kotlin
+// Development Configuration
+val devConfig = DevengNetworkingConfig(
+    loggingEnabled = true,
+    requestTimeoutMillis = 120_000L, // Longer timeouts for debugging
+    token = "dev-token-123",
+    socketBaseUrl = "wss://dev-ws.example.com"
+)
+
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://dev-api.example.com",
+    config = devConfig
+)
+
+// Production Configuration
+val prodConfig = DevengNetworkingConfig(
+    loggingEnabled = false, // Disable logging in production
+    requestTimeoutMillis = 30_000L,
+    customHeaders = mapOf(
+        "X-API-Version" to "v1",
+        "X-Client-Version" to "2.1.0"
+    ),
+    socketBaseUrl = "wss://ws.example.com"
+)
+
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    config = prodConfig
+)
+
+// File Upload Configuration
+val uploadConfig = DevengNetworkingConfig(
+    requestTimeoutMillis = 600_000L, // 10 minutes for large files
+    connectTimeoutMillis = 30_000L,
+    socketTimeoutMillis = 300_000L
+)
+
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://upload.example.com",
+    config = uploadConfig
+)
 ```
 
 ---
@@ -478,10 +590,8 @@ class CustomExceptionHandler : ExceptionHandler {
 The module supports adding custom headers to all requests:
 
 ```kotlin
-// Set custom headers during initialization
-DevengNetworkingModule.initDevengNetworkingModule(
-    restBaseUrl = "https://api.example.com",
-    socketBaseUrl = "wss://ws.example.com",
+// Set custom headers using configuration data class
+val config = DevengNetworkingConfig(
     customHeaders = mapOf(
         "X-API-Version" to "1.0",
         "X-Client-Platform" to "Android",
@@ -489,7 +599,12 @@ DevengNetworkingModule.initDevengNetworkingModule(
     )
 )
 
-// Or set them separately
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    config = config
+)
+
+// Or set them separately after initialization
 DevengNetworkingModule.setCustomDnmHeaders(mapOf(
     "X-Custom-Header" to "custom-value"
 ))
@@ -500,13 +615,63 @@ DevengNetworkingModule.setCustomDnmHeaders(mapOf(
 Control logging output for debugging and production environments:
 
 ```kotlin
-// Enable logging (default is true)
+// Production configuration with logging disabled
+val prodConfig = DevengNetworkingConfig(
+    loggingEnabled = false // Disable logging in production
+)
+
 DevengNetworkingModule.initDevengNetworkingModule(
     restBaseUrl = "https://api.example.com",
-    socketBaseUrl = "wss://ws.example.com",
-    loggingEnabled = true // Set to false in production if needed
+    config = prodConfig
+)
+
+// Development configuration with logging enabled
+val devConfig = DevengNetworkingConfig(
+    loggingEnabled = true, // Enable detailed logging for debugging
+    requestTimeoutMillis = 120_000L, // Longer timeouts for debugging
+    socketBaseUrl = "wss://dev-ws.example.com"
+)
+
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://dev-api.example.com",
+    config = devConfig
 )
 ```
+
+### Timeout Configuration
+
+Configure timeouts to handle slow or unresponsive servers:
+
+```kotlin
+// Configuration for file upload scenarios
+val uploadConfig = DevengNetworkingConfig(
+    requestTimeoutMillis = 300_000L,  // 5 minutes for large uploads
+    connectTimeoutMillis = 15_000L,   // 15 seconds to connect
+    socketTimeoutMillis = 120_000L    // 2 minutes between data packets
+)
+
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    config = uploadConfig
+)
+
+// Or set them separately after initialization
+DevengNetworkingModule.setTimeouts(
+    requestTimeoutMillis = 120_000L,  // 2 minutes for file uploads
+    connectTimeoutMillis = 15_000L,   // 15 seconds connect timeout
+    socketTimeoutMillis = 90_000L     // 1.5 minutes socket timeout
+)
+
+// Set individual timeout values
+DevengNetworkingModule.setRequestTimeout(30_000L)  // 30 seconds
+DevengNetworkingModule.setConnectTimeout(8_000L)   // 8 seconds
+DevengNetworkingModule.setSocketTimeout(60_000L)   // 60 seconds
+```
+
+**Timeout Types Explained:**
+- **Request Timeout**: Total time from sending request to receiving complete response
+- **Connect Timeout**: Time allowed to establish initial connection with server
+- **Socket Timeout**: Maximum time of inactivity between data packets
 
 ### Using Custom Serializers
 
@@ -589,9 +754,55 @@ of its main components:
     - Handle cases where error bodies cannot be parsed or decoded.
 
 ### 4. Initialization and Configuration
-- **Single Point Configuration**: The `initDevengNetworkingModule` function provides a centralized way to configure all module settings.
+- **Configuration Data Class**: The `DevengNetworkingConfig` provides a clean, type-safe way to configure all module settings.
+- **Single Point Configuration**: All settings are configured in one place for better maintainability.
 - **Dependency Injection**: Uses internal DI to manage HTTP client and exception handler instances.
 - **Logging Control**: Configurable logging that can be enabled or disabled based on environment needs.
+
+### Common Configuration Examples
+
+```kotlin
+// Development Configuration
+val devConfig = DevengNetworkingConfig(
+    loggingEnabled = true,
+    requestTimeoutMillis = 120_000L, // Longer timeouts for debugging
+    token = "dev-token-123",
+    socketBaseUrl = "wss://dev-ws.example.com"
+)
+
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://dev-api.example.com",
+    config = devConfig
+)
+
+// Production Configuration
+val prodConfig = DevengNetworkingConfig(
+    loggingEnabled = false, // Disable logging in production
+    requestTimeoutMillis = 30_000L,
+    customHeaders = mapOf(
+        "X-API-Version" to "v1",
+        "X-Client-Version" to "2.1.0"
+    ),
+    socketBaseUrl = "wss://ws.example.com"
+)
+
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://api.example.com",
+    config = prodConfig
+)
+
+// File Upload Configuration
+val uploadConfig = DevengNetworkingConfig(
+    requestTimeoutMillis = 600_000L, // 10 minutes for large files
+    connectTimeoutMillis = 30_000L,
+    socketTimeoutMillis = 300_000L
+)
+
+DevengNetworkingModule.initDevengNetworkingModule(
+    restBaseUrl = "https://upload.example.com",
+    config = uploadConfig
+)
+```
 
 By encapsulating these functionalities, the **Deveng Networking KMP** provides a streamlined interface for managing REST API and WebSocket interactions while handling errors in a consistent and customizable manner.
 
