@@ -5,7 +5,7 @@ android-minSdk = "24"
 android-compileSdk = "34"
 app-version-major = "2"
 app-version-code = "8"
-app-minor-version = "49"
+app-minor-version = "51"
 kotlinVersion = "2.1.20"
 kotlin-serialization = "1.8.0"
 
@@ -23,7 +23,7 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization"}
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization" }
 
 [bundles]
 ktor = [
