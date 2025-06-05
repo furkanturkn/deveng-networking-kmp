@@ -5,13 +5,11 @@ import error_handling.DevengException
 import error_handling.DevengUiError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMessageBuilder
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.KSerializer
@@ -19,7 +17,12 @@ import kotlinx.serialization.json.Json
 import networking.di.CoreModule
 import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
-import networking.util.*
+import networking.util.DevengHttpMethod
+import networking.util.buildRequestUrl
+import networking.util.logDebug
+import networking.util.setupAllHeaders
+import networking.util.setupQueryParameters
+import networking.util.toKtorHttpMethod
 import util.ErrorResponse
 import websocket.WebSocketConnection
 
@@ -37,9 +40,11 @@ public data class DevengNetworkingConfig(
 public object DevengNetworkingModule {
     public var client: HttpClient? = null
     public var exceptionHandler: ExceptionHandler? = null
+    public var sharedJson: Json? = null
 
     private var config: DevengNetworkingConfig? = null
     private var restBaseUrl: String = ""
+
     // Internal getters for HTTP client configuration
     internal val loggingEnabled: Boolean get() = config?.loggingEnabled ?: true
     internal val requestTimeoutMillis: Long get() = config?.requestTimeoutMillis ?: 10_000L
@@ -52,13 +57,15 @@ public object DevengNetworkingModule {
     ) {
         this.config = config
         this.restBaseUrl = restBaseUrl
-        
+
         if (config.locale != null) {
             exceptionHandler?.locale = config.locale
         }
 
         client = NetworkModule.httpClient
         exceptionHandler = CoreModule.exceptionHandler
+
+        sharedJson = CoreModule.sharedJson
     }
 
     // Internal getters for request handling
@@ -104,7 +111,7 @@ public object DevengNetworkingModule {
                 else -> {
                     var errorResponse: ErrorResponse? = null
                     try {
-                        errorResponse = Json.decodeFromString<ErrorResponse>(response.body())
+                        errorResponse = sharedJson?.decodeFromString<ErrorResponse>(response.body())
                     } catch (e: Exception) {
                         logDebug(message = "Cannot decode error response")
                     }
@@ -153,12 +160,12 @@ public object DevengNetworkingModule {
 
                 if (requestBody != null && requestSerializer != null) {
                     contentType(ContentType.Application.Json)
-                    setBody(Json.encodeToString(requestSerializer, requestBody))
+                    setBody(sharedJson?.encodeToString(requestSerializer, requestBody))
                 }
             }
 
             when {
-                response.status.isSuccess() -> Json.decodeFromString(
+                response.status.isSuccess() -> sharedJson!!.decodeFromString(
                     responseSerializer,
                     response.bodyAsText()
                 )
@@ -167,7 +174,10 @@ public object DevengNetworkingModule {
                     var errorResponse: ErrorResponse? = null
                     try {
                         errorResponse =
-                            Json.decodeFromString(ErrorResponse.serializer(), response.bodyAsText())
+                            sharedJson?.decodeFromString(
+                                ErrorResponse.serializer(),
+                                response.bodyAsText()
+                            )
                     } catch (e: Exception) {
                         logDebug(message = "Cannot decode error response")
                     }
@@ -223,7 +233,7 @@ public object DevengNetworkingModule {
                 else -> {
                     var errorResponse: ErrorResponse? = null
                     try {
-                        errorResponse = Json.decodeFromString<ErrorResponse>(response.body())
+                        errorResponse = sharedJson?.decodeFromString<ErrorResponse>(response.body())
                     } catch (e: Exception) {
                         logDebug(message = "Cannot decode error response")
                     }

@@ -16,105 +16,33 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import error_handling.DevengException
-import global.deveng.sample.data.datasource.remote.AuthenticationService
-import global.deveng.sample.data.repository.AuthenticationRepositoryImpl
-import global.deveng.sample.domain.model.Authentication
 import global.deveng.sample.ui.theme.DevengnetworkingkmpTheme
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import networking.DevengNetworkingConfig
 import networking.DevengNetworkingModule
-import websocket.WebSocketConnection
-import kotlin.coroutines.cancellation.CancellationException
+import networking.localization.Locale
+import networking.util.DevengHttpMethod
 
 
 class MainActivity : ComponentActivity() {
-
-    var a: Authentication? = null
-
     data class SocketState(
         val socketListJson: String = ""
     )
-
     private val _socketList = mutableStateOf(SocketState())
     val socketList: State<SocketState> = _socketList
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val authenticationRepositoryImpl = AuthenticationRepositoryImpl(
-            authenticationService = AuthenticationService()
-        )
-
-        fun test() {
-
-            try {
-                GlobalScope.launch {
-
-                    exampleWebSocketUsage(
-                        endPoint = "/Doviz",
-                        onReceivedResponse = {
-                            _socketList.value = SocketState(socketListJson = it)
-
-                            println("WebSocketResponse:${it}")
-                        }
-                    )
-
-                    println("Active connections: ${WebSocketConnection.getActiveConnections()}")
-                    println("Connection count: ${WebSocketConnection.getConnectionCount()}")
-
-                    delay(2000)
-
-                    DevengNetworkingModule.closeWebSocketConnection(
-                        "/Doviz"
-                    )
-
-                    exampleWebSocketUsage(
-                        endPoint = "/Maden",
-                        onReceivedResponse = {
-                            _socketList.value = SocketState(socketListJson = it)
-
-                            println("WebSocketResponse:${it}")
-                        }
-                    )
-
-                    println("Active connections: ${WebSocketConnection.getActiveConnections()}")
-                    println("Connection count: ${WebSocketConnection.getConnectionCount()}")
-
-
-                    /*
-                    a = authenticationRepositoryImpl.authenticate(
-                        "amin",
-                        "1"
-                    )
-                    println(a?.token)
-
-                     */
-
-
-                }
-            } catch (e: DevengException) {
-                println("*******")
-                println(e.message)
-            }
-
-
-        }
-
+        enableEdgeToEdge()
 
         val viewmodel = MainViewModel()
 
-
-        enableEdgeToEdge()
         setContent {
             DevengnetworkingkmpTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column {
-                        Greeting(
-                            name = a?.token ?: "Requeest",
-                            modifier = Modifier.padding(innerPadding)
-                        )
-
                         Greeting(
                             name = viewmodel.error.message ?: "Yalaaancıııı",
                             modifier = Modifier.padding(innerPadding)
@@ -142,8 +70,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
-
-
     Text(
         text = "Hello $name!",
         modifier = modifier
@@ -184,5 +110,52 @@ suspend fun exampleWebSocketUsage(
             return@connectToWebSocket
         }
     )
+
+}
+
+@Serializable
+data class VerifySmsOtpRequest(
+    val otp: String,
+    val phoneNumber: String
+)
+
+@Serializable
+data class AuthenticateOtpResponse(
+    val token: String
+)
+
+fun test() {
+    GlobalScope.launch {
+        try {
+            DevengNetworkingModule.initDevengNetworkingModule(
+                restBaseUrl = "",
+                config = DevengNetworkingConfig(
+                    socketBaseUrl = "",
+                    loggingEnabled = true,
+                    locale = Locale.TR,
+                    token = "token",
+                    customHeaders = mapOf("ApplicationType" to "Admin")
+                )
+            )
+
+            val requestBody = VerifySmsOtpRequest(
+                otp = "otp",
+                phoneNumber = "phoneNumber"
+            )
+
+            val result =
+                DevengNetworkingModule.sendRequest<VerifySmsOtpRequest, AuthenticateOtpResponse>(
+                    endpoint = "identity/api/AuthSMS/VerifyLogin",
+                    requestMethod = DevengHttpMethod.POST,
+                    requestBody = requestBody
+                )
+
+
+        } catch (e: DevengException) {
+            println("*******")
+            println(e.message)
+        }
+    }
+
 
 }
