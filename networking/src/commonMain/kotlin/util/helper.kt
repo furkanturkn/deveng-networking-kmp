@@ -2,6 +2,10 @@ package networking.util
 
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.headers
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMessageBuilder
 import io.ktor.http.URLBuilder
 import networking.DevengNetworkingModule
@@ -91,6 +95,65 @@ public fun buildRequestUrl(
 ): String {
     val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
     return "${getRestBaseUrl()}$resolvedEndpoint"
+}
+
+/**
+ * Helper function to create multipart content for file uploads
+ */
+public fun createMultipartContent(
+    fileName: String,
+    fileContent: ByteArray,
+    fileFieldName: String = "File",
+    additionalFields: Map<String, String>? = null,
+    mimeType: String? = null
+): MultiPartFormDataContent {
+    return MultiPartFormDataContent(
+        formData {
+            // Add file
+            append(
+                key = fileFieldName,
+                value = fileContent,
+                headers = Headers.build {
+                    append(
+                        HttpHeaders.ContentDisposition,
+                        "form-data; name=\"$fileFieldName\"; filename=\"$fileName\""
+                    )
+                    append(
+                        HttpHeaders.ContentType, 
+                        mimeType ?: detectMimeType(fileName)
+                    )
+                }
+            )
+            
+            // Add additional fields
+            additionalFields?.forEach { (key, value) ->
+                append(key, value)
+            }
+        }
+    )
+}
+
+/**
+ * Detects MIME type based on file extension
+ */
+public fun detectMimeType(fileName: String): String {
+    return when (fileName.substringAfterLast('.').lowercase()) {
+        "jpg", "jpeg" -> "image/jpeg"
+        "png" -> "image/png"
+        "gif" -> "image/gif"
+        "pdf" -> "application/pdf"
+        "txt" -> "text/plain"
+        "json" -> "application/json"
+        "xml" -> "application/xml"
+        "doc" -> "application/msword"
+        "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        "xls" -> "application/vnd.ms-excel"
+        "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        "mp4" -> "video/mp4"
+        "mp3" -> "audio/mpeg"
+        "zip" -> "application/zip"
+        else -> "application/octet-stream"
+    }
 }
 
 public fun HttpRequestBuilder.setupQueryParameters(queryParameters: Map<String, String>?) {

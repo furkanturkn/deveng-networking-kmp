@@ -19,6 +19,7 @@ import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
 import networking.util.DevengHttpMethod
 import networking.util.buildRequestUrl
+import networking.util.createMultipartContent
 import networking.util.logDebug
 import networking.util.setupAllHeaders
 import networking.util.setupQueryParameters
@@ -83,7 +84,12 @@ public object DevengNetworkingModule {
         requestBody: T? = null,
         requestMethod: DevengHttpMethod,
         queryParameters: Map<String, String>? = null,
-        pathParameters: Map<String, String>? = null
+        pathParameters: Map<String, String>? = null,
+        // File upload parameters
+        fileName: String? = null,
+        fileContent: ByteArray? = null,
+        fileFieldName: String = "File",
+        additionalFormFields: Map<String, String>? = null
     ): R {
         return try {
             if (client == null) {
@@ -99,7 +105,16 @@ public object DevengNetworkingModule {
 
                 setupQueryParameters(queryParameters)
 
-                if (requestBody != null) {
+                // Handle file upload for MULTIPART requests
+                if (requestMethod == DevengHttpMethod.MULTIPART && fileName != null && fileContent != null) {
+                    val multipartContent = createMultipartContent(
+                        fileName = fileName,
+                        fileContent = fileContent,
+                        fileFieldName = fileFieldName,
+                        additionalFields = additionalFormFields
+                    )
+                    setBody(multipartContent)
+                } else if (requestBody != null) {
                     contentType(ContentType.Application.Json)
                     setBody(requestBody)
                 }
@@ -142,7 +157,12 @@ public object DevengNetworkingModule {
         queryParameters: Map<String, String>? = null,
         pathParameters: Map<String, String>? = null,
         requestSerializer: KSerializer<T>? = null,
-        responseSerializer: KSerializer<R>
+        responseSerializer: KSerializer<R>,
+        // File upload parameters
+        fileName: String? = null,
+        fileContent: ByteArray? = null,
+        fileFieldName: String = "File",
+        additionalFormFields: Map<String, String>? = null
     ): R {
         if (client == null) {
             throw (IllegalStateException("Client is not initialized"))
@@ -158,7 +178,16 @@ public object DevengNetworkingModule {
 
                 setupQueryParameters(queryParameters)
 
-                if (requestBody != null && requestSerializer != null) {
+                // Handle file upload for MULTIPART requests
+                if (requestMethod == DevengHttpMethod.MULTIPART && fileName != null && fileContent != null) {
+                    val multipartContent = createMultipartContent(
+                        fileName = fileName,
+                        fileContent = fileContent,
+                        fileFieldName = fileFieldName,
+                        additionalFields = additionalFormFields
+                    )
+                    setBody(multipartContent)
+                } else if (requestBody != null && requestSerializer != null) {
                     contentType(ContentType.Application.Json)
                     setBody(sharedJson?.encodeToString(requestSerializer, requestBody))
                 }
@@ -205,7 +234,12 @@ public object DevengNetworkingModule {
         requestBody: T? = null,
         requestMethod: DevengHttpMethod,
         queryParameters: Map<String, String>? = null,
-        pathParameters: Map<String, String>? = null
+        pathParameters: Map<String, String>? = null,
+        // File upload parameters
+        fileName: String? = null,
+        fileContent: ByteArray? = null,
+        fileFieldName: String = "File",
+        additionalFormFields: Map<String, String>? = null
     ): HttpResponse {
         if (client == null) {
             throw (IllegalStateException("Client is not initialized"))
@@ -221,7 +255,16 @@ public object DevengNetworkingModule {
 
                 setupQueryParameters(queryParameters)
 
-                if (requestBody != null) {
+                // Handle file upload for MULTIPART requests
+                if (requestMethod == DevengHttpMethod.MULTIPART && fileName != null && fileContent != null) {
+                    val multipartContent = createMultipartContent(
+                        fileName = fileName,
+                        fileContent = fileContent,
+                        fileFieldName = fileFieldName,
+                        additionalFields = additionalFormFields
+                    )
+                    setBody(multipartContent)
+                } else if (requestBody != null) {
                     contentType(ContentType.Application.Json)
                     setBody(requestBody)
                 }
