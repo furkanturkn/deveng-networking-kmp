@@ -71,6 +71,7 @@ suspend fun getUser(userId: String): User {
 | Feature | Description |
 |---------|-------------|
 | 🌐 **Full REST API Support** | GET, POST, PUT, DELETE with automatic serialization |
+| 📁 **File Upload Support** | Simple multipart file uploads with MIME detection |
 | 🔄 **WebSocket Management** | Connection pooling, lifecycle events, automatic reconnection |
 | 🎯 **Multiplatform** | Android, iOS, Desktop (JVM), WebAssembly |
 | 🔒 **Authentication** | Built-in token-based authentication |
@@ -203,6 +204,99 @@ suspend fun checkApiLimits() {
 - **Custom status handling**: Handle specific HTTP status codes
 - **Cookies**: Access response cookies
 - **Content metadata**: Check `Content-Type`, `Content-Length`, etc.
+
+## 📁 File Upload Usage
+
+Upload files with multipart form data using the same simplicity as regular API calls with `DevengHttpMethod.MULTIPART`:
+
+### Simple Multipart File Upload
+
+```kotlin
+suspend fun uploadProfilePicture(userId: String, imageData: ByteArray) {
+    DevengNetworkingModule.sendRequest<Unit, Unit>(
+        endpoint = "/users/$userId/avatar",
+        requestMethod = DevengHttpMethod.MULTIPART,
+        fileName = "profile.jpg",
+        fileContent = imageData
+    )
+}
+```
+
+### Multipart File Upload with Additional Form Fields
+
+```kotlin
+suspend fun uploadDocument(
+    fileName: String,
+    fileData: ByteArray,
+    documentType: String,
+    isPublic: Boolean
+) {
+    DevengNetworkingModule.sendRequest<Unit, UploadResponse>(
+        endpoint = "/documents/upload",
+        requestMethod = DevengHttpMethod.MULTIPART,
+        fileName = fileName,
+        fileContent = fileData,
+        additionalFormFields = mapOf(
+            "type" to documentType,
+            "isPublic" to isPublic.toString(),
+            "uploadedAt" to System.currentTimeMillis().toString()
+        )
+    )
+}
+```
+
+### Custom File Field Name
+
+```kotlin
+suspend fun uploadAttachment(fileName: String, fileData: ByteArray) {
+    DevengNetworkingModule.sendRequest<Unit, Unit>(
+        endpoint = "/attachments",
+        requestMethod = DevengHttpMethod.MULTIPART,
+        fileName = fileName,
+        fileContent = fileData,
+        fileFieldName = "attachment" // Custom field name instead of default "File"
+    )
+}
+```
+
+### Multipart File Upload with Response Parsing
+
+```kotlin
+data class UploadResponse(val fileId: String, val downloadUrl: String)
+
+suspend fun uploadAndGetUrl(fileName: String, fileData: ByteArray): UploadResponse {
+    return DevengNetworkingModule.sendRequest<Unit, UploadResponse>(
+        endpoint = "/files/upload",
+        requestMethod = DevengHttpMethod.MULTIPART,
+        fileName = fileName,
+        fileContent = fileData,
+        additionalFormFields = mapOf("source" to "mobile")
+    )
+}
+```
+
+### For Java < 21 (Explicit Serializers)
+
+```kotlin
+suspend fun uploadFile(fileName: String, fileData: ByteArray): UploadResponse {
+    return DevengNetworkingModule.sendRequest(
+        endpoint = "/files/upload",
+        requestMethod = DevengHttpMethod.MULTIPART,
+        requestSerializer = null,
+        responseSerializer = UploadResponse.serializer(),
+        fileName = fileName,
+        fileContent = fileData
+    )
+}
+```
+
+**Multipart File Upload Features:**
+- **Automatic MIME type detection** based on file extension
+- **Custom file field names** for different API requirements
+- **Additional multipart form fields** for metadata
+- **Type-safe responses** with automatic JSON parsing
+- **Same error handling** as regular API calls
+- **Works on all platforms** - Android, iOS, Desktop, Web
 
 ## 🔌 WebSocket Usage
 
