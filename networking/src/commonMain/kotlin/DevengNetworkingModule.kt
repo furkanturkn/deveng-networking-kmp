@@ -59,14 +59,13 @@ public object DevengNetworkingModule {
         this.config = config
         this.restBaseUrl = restBaseUrl
 
+        client = NetworkModule.httpClient
+        exceptionHandler = CoreModule.exceptionHandler
+        sharedJson = CoreModule.sharedJson
+
         if (config.locale != null) {
             exceptionHandler?.locale = config.locale
         }
-
-        client = NetworkModule.httpClient
-        exceptionHandler = CoreModule.exceptionHandler
-
-        sharedJson = CoreModule.sharedJson
     }
 
     // Internal getters for request handling
