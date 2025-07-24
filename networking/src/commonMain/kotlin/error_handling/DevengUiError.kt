@@ -25,6 +25,7 @@ public sealed class DevengUiError(errorMessage: String) : Throwable(errorMessage
                     ErrorKey.SERVER_ERROR -> ServerError(localizedMessage)
                     ErrorKey.UNKNOWN_ERROR -> UnknownError(localizedMessage)
                     ErrorKey.NETWORK_ERROR -> NetworkError(localizedMessage)
+                    ErrorKey.CONNECTION_ERROR -> NetworkError(localizedMessage)
                 }
             } else {
                 return UnknownError(apiErrorMessage)

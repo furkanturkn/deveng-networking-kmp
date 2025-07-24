@@ -3,6 +3,7 @@ package networking
 import di.NetworkModule
 import error_handling.DevengException
 import error_handling.DevengUiError
+import error_handling.ErrorKey
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.request
@@ -17,6 +18,7 @@ import kotlinx.serialization.json.Json
 import networking.di.CoreModule
 import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
+import networking.localization.LocalizationManager
 import networking.util.DevengHttpMethod
 import networking.util.buildRequestUrl
 import networking.util.createMultipartContent
@@ -35,7 +37,8 @@ public data class DevengNetworkingConfig(
     val token: String = "",
     val locale: Locale? = null,
     val customHeaders: Map<String, String> = emptyMap(),
-    val socketBaseUrl: String = ""
+    val socketBaseUrl: String = "",
+    val customErrorMessages: Map<Locale, Map<ErrorKey, String>>? = null
 )
 
 public object DevengNetworkingModule {
@@ -65,6 +68,10 @@ public object DevengNetworkingModule {
 
         if (config.locale != null) {
             exceptionHandler?.locale = config.locale
+        }
+
+        if (config.customErrorMessages != null) {
+            LocalizationManager.setCustomTranslations(config.customErrorMessages)
         }
     }
 

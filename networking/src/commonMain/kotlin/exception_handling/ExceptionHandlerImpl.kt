@@ -31,20 +31,18 @@ internal object ExceptionHandlerImpl : ExceptionHandler {
                                    cause.message?.contains("Unable to resolve host") == true ||
                                    cause.message?.contains("No address associated with hostname") == true
         
-        return when {
-            isUnknownHostException -> {
-                if (locale == Locale.TR) {
-                    DevengUiError.NetworkError("İnternet bağlantınızı kontrol edin. Sunucuya ulaşılamıyor.")
-                } else {
-                    DevengUiError.NetworkError("Please check your internet connection. Unable to reach the server.")
-                }
-            }
-            locale == Locale.TR -> {
-                DevengUiError.NetworkError("Bir hata oluştu.")
-            }
-            else -> {
-                DevengUiError.NetworkError("An error occurred.")
-            }
+        return if (isUnknownHostException) {
+            DevengUiError.createError(
+                key = ErrorKey.CONNECTION_ERROR,
+                locale = locale ?: Locale.EN,
+                apiErrorMessage = null
+            )
+        } else {
+            DevengUiError.createError(
+                key = ErrorKey.NETWORK_ERROR,
+                locale = locale ?: Locale.EN,
+                apiErrorMessage = null
+            )
         }
     }
 }
