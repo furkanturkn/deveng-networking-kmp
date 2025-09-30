@@ -31,9 +31,9 @@ import websocket.WebSocketConnection
 
 public data class DevengNetworkingConfig(
     val loggingEnabled: Boolean = true,
-    val requestTimeoutMillis: Long = 60_000L,
+    val requestTimeoutMillis: Long = 30_000L,
     val connectTimeoutMillis: Long = 10_000L,
-    val socketTimeoutMillis: Long = 60_000L,
+    val socketTimeoutMillis: Long = 30_000L,
     val token: String = "",
     val locale: Locale? = null,
     val customHeaders: Map<String, String> = emptyMap(),
@@ -51,9 +51,9 @@ public object DevengNetworkingModule {
 
     // Internal getters for HTTP client configuration
     internal val loggingEnabled: Boolean get() = config?.loggingEnabled ?: true
-    internal val requestTimeoutMillis: Long get() = config?.requestTimeoutMillis ?: 10_000L
+    internal val requestTimeoutMillis: Long get() = config?.requestTimeoutMillis ?: 30_000L
     internal val connectTimeoutMillis: Long get() = config?.connectTimeoutMillis ?: 10_000L
-    internal val socketTimeoutMillis: Long get() = config?.socketTimeoutMillis ?: 10_000L
+    internal val socketTimeoutMillis: Long get() = config?.socketTimeoutMillis ?: 30_000L
 
     public fun initDevengNetworkingModule(
         restBaseUrl: String,

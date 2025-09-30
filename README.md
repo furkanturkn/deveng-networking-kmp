@@ -23,9 +23,9 @@ dependencies {
 // 1. Configure the module
 val config = DevengNetworkingConfig(
     loggingEnabled = true,                         // Optional - defaults to true
-    requestTimeoutMillis = 60_000L,               // Optional - defaults to 60 seconds
+    requestTimeoutMillis = 30_000L,               // Optional - defaults to 60 seconds
     connectTimeoutMillis = 10_000L,               // Optional - defaults to 10 seconds
-    socketTimeoutMillis = 60_000L,                // Optional - defaults to 60 seconds
+    socketTimeoutMillis = 30_000L,                // Optional - defaults to 60 seconds
     token = "your-auth-token",                    // Optional - for authentication
     locale = Locale.EN,                           // Optional - defaults to EN
     customHeaders = mapOf(                        // Optional - for global headers

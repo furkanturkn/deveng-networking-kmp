@@ -1,12 +1,11 @@
 [versions]
-agp = "8.5.2"
-kotlin = "2.1.0"
+agp = "8.10.1"
+kotlin = "2.2.10"
 android-minSdk = "24"
-android-compileSdk = "34"
+android-compileSdk = "36"
 app-version-major = "2"
-app-version-code = "9"
-app-minor-version = "56"
-kotlinVersion = "2.1.20"
+app-version-code = "10"
+app-minor-version = "57"
 kotlin-serialization = "1.8.0"
 
 ktor = "3.1.1"
@@ -44,5 +43,5 @@ vanniktech-mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.30
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
