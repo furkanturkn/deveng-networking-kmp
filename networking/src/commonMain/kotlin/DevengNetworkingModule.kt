@@ -89,7 +89,7 @@ public object DevengNetworkingModule {
         endpoint: String,
         requestBody: T? = null,
         requestMethod: DevengHttpMethod,
-        queryParameters: Map<String, String>? = null,
+        queryParameters: Map<String, Any>? = null,
         pathParameters: Map<String, String>? = null,
         // File upload parameters
         fileName: String? = null,
@@ -160,7 +160,7 @@ public object DevengNetworkingModule {
         endpoint: String,
         requestBody: T? = null,
         requestMethod: DevengHttpMethod,
-        queryParameters: Map<String, String>? = null,
+        queryParameters: Map<String, Any>? = null,
         pathParameters: Map<String, String>? = null,
         requestSerializer: KSerializer<T>? = null,
         responseSerializer: KSerializer<R>,
@@ -239,7 +239,7 @@ public object DevengNetworkingModule {
         endpoint: String,
         requestBody: T? = null,
         requestMethod: DevengHttpMethod,
-        queryParameters: Map<String, String>? = null,
+        queryParameters: Map<String, Any>? = null,
         pathParameters: Map<String, String>? = null,
         // File upload parameters
         fileName: String? = null,

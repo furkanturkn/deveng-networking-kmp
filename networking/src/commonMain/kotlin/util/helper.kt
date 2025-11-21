@@ -29,10 +29,23 @@ public fun logDebug(
 
 /**
  * Extension function to add query parameters to the URL builder.
+ * Supports both single String values and List<String> for repeated query parameters.
  */
-public fun URLBuilder.addQueryParameters(queryParameters: Map<String, String>?) {
+public fun URLBuilder.addQueryParameters(queryParameters: Map<String, Any>?) {
     queryParameters?.forEach { (key, value) ->
-        parameters.append(key, value)
+        when (value) {
+            is String -> parameters.append(key, value)
+            is List<*> -> {
+                value.forEach { item ->
+                    if (item is String) {
+                        parameters.append(key, item)
+                    }
+                }
+            }
+            else -> {
+                parameters.append(key, value.toString())
+            }
+        }
     }
 }
 
@@ -156,7 +169,7 @@ public fun detectMimeType(fileName: String): String {
     }
 }
 
-public fun HttpRequestBuilder.setupQueryParameters(queryParameters: Map<String, String>?) {
+public fun HttpRequestBuilder.setupQueryParameters(queryParameters: Map<String, Any>?) {
     url {
         addQueryParameters(queryParameters = queryParameters)
     }
