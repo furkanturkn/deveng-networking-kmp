@@ -4,7 +4,7 @@ kotlin = "2.2.10"
 android-minSdk = "24"
 android-compileSdk = "36"
 app-version-major = "2"
-app-version-code = "10"
+app-version-code = "11"
 app-minor-version = "57"
 kotlin-serialization = "1.8.0"
 
