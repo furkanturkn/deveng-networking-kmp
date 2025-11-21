@@ -40,6 +40,9 @@ public fun URLBuilder.addQueryParameters(queryParameters: Map<String, Any>?) {
                     if (item is String) {
                         parameters.append(key, item)
                     }
+                    else {
+                        parameters.append(key, item.toString())
+                    }
                 }
             }
             else -> {
