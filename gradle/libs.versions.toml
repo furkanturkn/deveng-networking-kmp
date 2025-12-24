@@ -1,21 +1,20 @@
 [versions]
-agp = "8.10.1"
-kotlin = "2.2.10"
+agp = "8.11.2"
+kotlin = "2.2.21"
 android-minSdk = "24"
 android-compileSdk = "36"
 app-version-major = "2"
-app-version-code = "11"
-app-minor-version = "58"
+app-version-code = "12"
+app-minor-version = "60"
 kotlin-serialization = "1.8.0"
 
-compose-plugin = "1.9.0"
-androidx-activityCompose = "1.10.1"
+compose-plugin = "1.9.3"
+androidx-activityCompose = "1.12.0"
 kotlinx-coroutines-swing = "1.10.2"
 
-ktor = "3.1.1"
+ktor = "3.3.3"
 
 [libraries]
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
@@ -29,7 +28,6 @@ ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization" }
 
 androidx-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines-swing" }
 
 [bundles]
 ktor = [
