@@ -21,6 +21,7 @@ internal fun App() {
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val networkingModule = remember { DevengNetworkingModule() }
 
     AppTheme {
         Column(
@@ -42,7 +43,7 @@ internal fun App() {
                             errorMessage = null
                             try {
                                 // Initialize the networking module
-                                DevengNetworkingModule.initDevengNetworkingModule(
+                                networkingModule.initDevengNetworkingModule(
                                     restBaseUrl = "https://jsonplaceholder.typicode.com",
                                     config = DevengNetworkingConfig(
                                         socketBaseUrl = "",
@@ -54,7 +55,7 @@ internal fun App() {
                                 )
 
                                 // Make a test request
-                                val result = DevengNetworkingModule.sendRequest<Unit, PostResponse>(
+                                val result = networkingModule.sendRequest<Unit, PostResponse>(
                                     endpoint = "/posts/1",
                                     requestMethod = DevengHttpMethod.GET,
                                     requestBody = null
