@@ -9,16 +9,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMessageBuilder
 import io.ktor.http.URLBuilder
 import networking.DevengNetworkingModule
-import networking.DevengNetworkingModule.exceptionHandler
-import networking.DevengNetworkingModule.getCustomHeaders
-import networking.DevengNetworkingModule.getRestBaseUrl
-import networking.DevengNetworkingModule.getToken
 
 public fun logDebug(
+    module: DevengNetworkingModule,
     tag: String? = null,
     message: Any?
 ) {
-    if (DevengNetworkingModule.loggingEnabled) {
+    if (module.loggingEnabled) {
         if (tag != null) {
             println("[$tag] $message")
         } else {
@@ -91,26 +88,27 @@ public fun HttpMessageBuilder.setupCustomHeaders(customHeaders: Map<String, Stri
     }
 }
 
-public fun HttpMessageBuilder.setupAllHeaders() {
+public fun HttpMessageBuilder.setupAllHeaders(module: DevengNetworkingModule) {
     setupAuthorizationHeader(
-        token = getToken()
+        token = module.getToken()
     )
 
-    if (exceptionHandler?.locale != null) {
+    if (module.exceptionHandler?.locale != null) {
         setupLocaleHeader(
-            locale = exceptionHandler?.locale.toString()
+            locale = module.exceptionHandler?.locale.toString()
         )
     }
 
-    setupCustomHeaders(getCustomHeaders())
+    setupCustomHeaders(module.getCustomHeaders())
 }
 
 public fun buildRequestUrl(
+    module: DevengNetworkingModule,
     endpoint: String,
     pathParameters: Map<String, String>? = null
 ): String {
     val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
-    return "${getRestBaseUrl()}$resolvedEndpoint"
+    return "${module.getRestBaseUrl()}$resolvedEndpoint"
 }
 
 /**

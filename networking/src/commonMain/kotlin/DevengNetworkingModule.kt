@@ -21,6 +21,7 @@ import networking.localization.Locale
 import networking.localization.LocalizationManager
 import networking.util.DevengHttpMethod
 import networking.util.buildRequestUrl
+import networking.util.setupAllHeaders
 import networking.util.createMultipartContent
 import networking.util.logDebug
 import networking.util.setupAllHeaders
@@ -41,7 +42,7 @@ public data class DevengNetworkingConfig(
     val customErrorMessages: Map<Locale, Map<ErrorKey, String>>? = null
 )
 
-public object DevengNetworkingModule {
+public class DevengNetworkingModule {
     public var client: HttpClient? = null
     public var exceptionHandler: ExceptionHandler? = null
     public var sharedJson: Json? = null
@@ -103,11 +104,11 @@ public object DevengNetworkingModule {
             }
 
             val response: HttpResponse = client!!.request(
-                urlString = buildRequestUrl(endpoint, pathParameters)
+                urlString = buildRequestUrl(this, endpoint, pathParameters)
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
-                setupAllHeaders()
+                setupAllHeaders(this@DevengNetworkingModule)
 
                 setupQueryParameters(queryParameters)
 
@@ -134,7 +135,7 @@ public object DevengNetworkingModule {
                     try {
                         errorResponse = sharedJson?.decodeFromString<ErrorResponse>(response.body())
                     } catch (e: Exception) {
-                        logDebug(message = "Cannot decode error response")
+                        logDebug(this, message = "Cannot decode error response")
                     }
 
                     val error = exceptionHandler?.handleHttpException(
@@ -149,8 +150,8 @@ public object DevengNetworkingModule {
                 throw e
             } else {
                 val error = exceptionHandler?.handleNetworkException(e)
-                logDebug(message = e.message)
-                logDebug(message = e.cause)
+                logDebug(this, message = e.message)
+                logDebug(this, message = e.cause)
                 throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
         }
@@ -176,11 +177,11 @@ public object DevengNetworkingModule {
 
         return try {
             val response: HttpResponse = client!!.request(
-                urlString = buildRequestUrl(endpoint, pathParameters)
+                urlString = buildRequestUrl(this, endpoint, pathParameters)
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
-                setupAllHeaders()
+                setupAllHeaders(this@DevengNetworkingModule)
 
                 setupQueryParameters(queryParameters)
 
@@ -214,7 +215,7 @@ public object DevengNetworkingModule {
                                 response.bodyAsText()
                             )
                     } catch (e: Exception) {
-                        logDebug(message = "Cannot decode error response")
+                        logDebug(this, message = "Cannot decode error response")
                     }
 
                     val error = exceptionHandler?.handleHttpException(
@@ -229,7 +230,7 @@ public object DevengNetworkingModule {
                 throw e
             } else {
                 val error = exceptionHandler?.handleNetworkException(e)
-                logDebug(message = e.message.toString())
+                logDebug(this, message = e.message.toString())
                 throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
         }
@@ -253,11 +254,11 @@ public object DevengNetworkingModule {
 
         return try {
             val response: HttpResponse = client!!.request(
-                urlString = buildRequestUrl(endpoint, pathParameters)
+                urlString = buildRequestUrl(this, endpoint, pathParameters)
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
-                setupAllHeaders()
+                setupAllHeaders(this@DevengNetworkingModule)
 
                 setupQueryParameters(queryParameters)
 
@@ -284,7 +285,7 @@ public object DevengNetworkingModule {
                     try {
                         errorResponse = sharedJson?.decodeFromString<ErrorResponse>(response.body())
                     } catch (e: Exception) {
-                        logDebug(message = "Cannot decode error response")
+                        logDebug(this, message = "Cannot decode error response")
                     }
 
                     val error = exceptionHandler?.handleHttpException(
@@ -299,8 +300,8 @@ public object DevengNetworkingModule {
                 throw e
             } else {
                 val error = exceptionHandler?.handleNetworkException(e)
-                logDebug(message = e.message)
-                logDebug(message = e.cause)
+                logDebug(this, message = e.message)
+                logDebug(this, message = e.cause)
                 throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
             }
         }
