@@ -7,9 +7,8 @@ import networking.util.createHttpClient
 
 internal actual object NetworkModule {
     actual val httpClient: HttpClient by lazy {
-        if (!DevengNetworkingModule.loggingEnabled) {
-            suppressHttpLogs()
-        }
+        // Note: Logging suppression is handled by createHttpClient based on config
+        // If logging is disabled in the config, it won't be installed
         createHttpClient(Js.create())
     }
 }
