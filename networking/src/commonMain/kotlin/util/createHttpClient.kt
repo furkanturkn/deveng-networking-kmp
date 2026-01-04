@@ -9,12 +9,15 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
-import networking.DevengNetworkingModule
+import networking.DevengNetworkingConfig
 import networking.di.CoreModule
 
-internal fun createHttpClient(engine: HttpClientEngine): HttpClient {
+internal fun createHttpClient(
+    engine: HttpClientEngine,
+    config: DevengNetworkingConfig = DevengNetworkingConfig()
+): HttpClient {
     return HttpClient(engine) {
-        if (DevengNetworkingModule.loggingEnabled) {
+        if (config.loggingEnabled) {
             install(Logging) {
                 logger = object : Logger {
                     override fun log(message: String) {
@@ -27,9 +30,9 @@ internal fun createHttpClient(engine: HttpClientEngine): HttpClient {
         }
 
         install(HttpTimeout) {
-            requestTimeoutMillis = DevengNetworkingModule.requestTimeoutMillis
-            connectTimeoutMillis = DevengNetworkingModule.connectTimeoutMillis
-            socketTimeoutMillis = DevengNetworkingModule.socketTimeoutMillis
+            requestTimeoutMillis = config.requestTimeoutMillis
+            connectTimeoutMillis = config.connectTimeoutMillis
+            socketTimeoutMillis = config.socketTimeoutMillis
         }
 
         install(ContentNegotiation) {

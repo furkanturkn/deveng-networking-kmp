@@ -11,11 +11,13 @@ import io.ktor.http.URLBuilder
 import networking.DevengNetworkingModule
 
 public fun logDebug(
-    module: DevengNetworkingModule,
+    module: DevengNetworkingModule? = null,
     tag: String? = null,
     message: Any?
 ) {
-    if (module.loggingEnabled) {
+    // If module is null, always log (for cases like WebSocketConnection where module isn't available)
+    val shouldLog = module?.loggingEnabled ?: true
+    if (shouldLog) {
         if (tag != null) {
             println("[$tag] $message")
         } else {
