@@ -53,10 +53,11 @@ public fun URLBuilder.addQueryParameters(queryParameters: Map<String, Any>?) {
 
 /**
  * Extension function to add path parameters to an endpoint.
+ * Supports any type of value, converting it to String for URL replacement.
  */
-public fun String.addPathParameters(pathParameters: Map<String, String>?): String {
+public fun String.addPathParameters(pathParameters: Map<String, Any>?): String {
     return pathParameters?.entries?.fold(this) { acc, (key, value) ->
-        acc.replace("{$key}", value)
+        acc.replace("{$key}", value.toString())
     } ?: this
 }
 
@@ -107,7 +108,7 @@ public fun HttpMessageBuilder.setupAllHeaders(module: DevengNetworkingModule) {
 public fun buildRequestUrl(
     module: DevengNetworkingModule,
     endpoint: String,
-    pathParameters: Map<String, String>? = null
+    pathParameters: Map<String, Any>? = null
 ): String {
     val resolvedEndpoint = endpoint.addPathParameters(pathParameters = pathParameters)
     return "${module.getRestBaseUrl()}$resolvedEndpoint"
