@@ -6,6 +6,7 @@ public enum class DevengHttpMethod {
     GET,
     POST,
     PUT,
+    PATCH,
     DELETE,
     MULTIPART
 }
@@ -15,6 +16,7 @@ public fun DevengHttpMethod.toKtorHttpMethod(): HttpMethod {
         DevengHttpMethod.GET -> HttpMethod.Get
         DevengHttpMethod.POST -> HttpMethod.Post
         DevengHttpMethod.PUT -> HttpMethod.Put
+        DevengHttpMethod.PATCH -> HttpMethod.Patch
         DevengHttpMethod.DELETE -> HttpMethod.Delete
         DevengHttpMethod.MULTIPART -> HttpMethod.Post
     }
