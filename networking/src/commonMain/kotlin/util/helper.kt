@@ -158,6 +158,7 @@ public fun detectMimeType(fileName: String): String {
         "jpg", "jpeg" -> "image/jpeg"
         "png" -> "image/png"
         "gif" -> "image/gif"
+        "webp" -> "image/webp"
         "pdf" -> "application/pdf"
         "txt" -> "text/plain"
         "json" -> "application/json"
