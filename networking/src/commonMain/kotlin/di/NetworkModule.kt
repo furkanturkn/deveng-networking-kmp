@@ -1,7 +1,8 @@
 package di
 
 import io.ktor.client.HttpClient
+import networking.DevengNetworkingConfig
 
 internal expect object NetworkModule {
-    val httpClient: HttpClient
+    fun createHttpClient(config: DevengNetworkingConfig): HttpClient
 }
