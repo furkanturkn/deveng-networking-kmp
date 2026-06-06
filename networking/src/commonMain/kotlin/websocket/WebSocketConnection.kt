@@ -81,6 +81,7 @@ public class WebSocketConnection private constructor(
     }
 
     public suspend fun start(
+        token: String = "",
         onConnected: suspend WebSocketConnection.() -> Unit,
         onMessageReceived: (String) -> Unit,
         onError: (Throwable) -> Unit,
@@ -102,19 +103,20 @@ public class WebSocketConnection private constructor(
                 return
             }
 
-            // Ensure clean state before starting
             cleanupInternal()
 
             _connectionState.value = ConnectionState.Connecting
-            logDebug(message = "Starting new WebSocket connection to: $url")
 
             connectionJob = scope.launch {
                 try {
-                    client.webSocket(urlString = url) {
+                    client.webSocket(urlString = url, request = {
+                        if (token.isNotBlank()) {
+                            headers.append("Authorization", "Bearer $token")
+                        }
+                    }) {
                         session = this
                         try {
                             _connectionState.value = ConnectionState.Connected
-                            logDebug(message = "WebSocket connected successfully to: $url")
                             onConnected(this@WebSocketConnection)
 
                             for (frame in incoming) {
@@ -124,28 +126,24 @@ public class WebSocketConnection private constructor(
                                 when (frame) {
                                     is Frame.Text -> {
                                         try {
-                                            onMessageReceived(frame.readText())
+                                            val text = frame.readText()
+                                            onMessageReceived(text)
                                         } catch (e: Exception) {
-                                            logDebug(message = "Error processing message: ${e.message}")
                                             val handled = exceptionHandler.handleNetworkException(e)
                                             onError(handled)
                                         }
                                     }
 
                                     is Frame.Close -> {
-                                        logDebug(message = "WebSocket received close frame")
                                         onClose?.invoke()
                                         closeSessionInternal()
                                         break
                                     }
 
-                                    else -> {
-                                        logDebug(message = "Unsupported frame type: $frame")
-                                    }
+                                    else -> {}
                                 }
                             }
                         } catch (e: Exception) {
-                            logDebug(message = "WebSocket session error: ${e.message}")
                             val handled = exceptionHandler.handleNetworkException(e)
                             _connectionState.value = ConnectionState.Error(handled)
                             onError(handled)
@@ -153,11 +151,9 @@ public class WebSocketConnection private constructor(
                         }
                     }
                 } catch (e: CancellationException) {
-                    logDebug(message = "WebSocket connection cancelled for: $url")
                     _connectionState.value = ConnectionState.Disconnected
                     closeSessionInternal()
                 } catch (e: Exception) {
-                    logDebug(message = "WebSocket connection error: ${e.message}")
                     val handled = exceptionHandler.handleNetworkException(e)
                     _connectionState.value = ConnectionState.Error(handled)
                     onError(handled)

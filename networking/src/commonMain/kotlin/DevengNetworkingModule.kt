@@ -332,6 +332,7 @@ public class DevengNetworkingModule {
             exceptionHandler = exceptionHandler!!
         )
         connection.start(
+            token = getToken(),
             onConnected = onConnected,
             onMessageReceived = onMessageReceived,
             onError = onError,
