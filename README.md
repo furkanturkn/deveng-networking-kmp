@@ -26,7 +26,7 @@ val config = DevengNetworkingConfig(
     requestTimeoutMillis = 30_000L,               // Optional - defaults to 60 seconds
     connectTimeoutMillis = 10_000L,               // Optional - defaults to 10 seconds
     socketTimeoutMillis = 30_000L,                // Optional - defaults to 60 seconds
-    token = "your-auth-token",                    // Optional - for authentication
+    token = "your-auth-token",                    // Optional - for Bearer auth (omit for cookie-only)
     locale = Locale.EN,                           // Optional - defaults to EN
     customHeaders = mapOf(                        // Optional - for global headers
         "X-API-Version" to "1.0",
@@ -74,7 +74,7 @@ suspend fun getUser(userId: String): User {
 | 📁 **File Upload Support** | Simple multipart file uploads with MIME detection |
 | 🔄 **WebSocket Management** | Connection pooling, lifecycle events, automatic reconnection |
 | 🎯 **Multiplatform** | Android, iOS, Desktop (JVM), WebAssembly |
-| 🔒 **Authentication** | Built-in token-based authentication |
+| 🔒 **Authentication** | Bearer tokens, cookie sessions, CSRF, and refresh-on-401 |
 | 🌍 **Localization** | Localized error messages and headers |
 | 🎭 **Error Handling** | Centralized, customizable exception handling |
 | 🛠️ **Dynamic Parameters** | Path and query parameter injection |
@@ -403,6 +403,56 @@ class CustomExceptionHandler : ExceptionHandler {
 // Update authentication token at runtime
 DevengNetworkingModule.setToken("new-auth-token")
 ```
+
+When the token is blank (`""`), DNM omits the `Authorization` header entirely rather than sending an empty `Authorization: Bearer ` value — useful for cookie-only auth flows.
+
+### Cookie-Based Sessions
+
+Install Ktor's `HttpCookies` plugin with a custom `CookiesStorage` to persist cookies across requests (and across process restarts, if your storage writes to disk):
+
+```kotlin
+val config = DevengNetworkingConfig(
+    httpClientConfig = {
+        install(HttpCookies) {
+            storage = MyPersistentCookiesStorage()
+        }
+    },
+    wasmJsIncludeCredentials = true               // Required on wasmJs for cross-origin cookies
+)
+```
+
+`httpClientConfig` is a generic Ktor `HttpClient` extension point — install any plugin you need, not just `HttpCookies`. `wasmJsIncludeCredentials` is engine-level and only relevant on the wasmJs target.
+
+### CSRF Protection
+
+Attach a CSRF token header on every POST, PUT, PATCH, DELETE. The provider is called once per mutating request; a `null` return skips the header for that request:
+
+```kotlin
+val config = DevengNetworkingConfig(
+    csrfTokenProvider = DevengCsrfTokenProvider { myCsrfStore.getToken() },
+    csrfHeaderName = "X-CSRF-TOKEN"               // Optional - defaults to "X-CSRF-TOKEN"
+)
+```
+
+### Handling 401 Responses
+
+Two opt-in hooks fire on HTTP 401. `sessionRefresher` runs first and can recover the session transparently by refreshing and retrying the original request; `onUnauthorized` runs only when recovery fails (or isn't configured) and is intended for global UI reactions:
+
+```kotlin
+val config = DevengNetworkingConfig(
+    sessionRefresher = DevengSessionRefresher {
+        try {
+            authService.refreshSession()
+            true                                  // Retry the failed request
+        } catch (e: Exception) {
+            false                                 // Surface UnauthorizedError
+        }
+    },
+    onUnauthorized = { eventBus.emit(SessionExpired) }
+)
+```
+
+Concurrent 401s are deduplicated by a per-client mutex + generation counter, so only one refresh runs even under heavy parallel load. The refresher can issue HTTP calls through the same DNM client without infinite recursion — an internal coroutine-context marker suppresses re-entrance.
 
 ### Version Catalog Setup
 

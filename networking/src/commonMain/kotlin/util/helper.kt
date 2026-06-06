@@ -92,9 +92,10 @@ public fun HttpMessageBuilder.setupCustomHeaders(customHeaders: Map<String, Stri
 }
 
 public fun HttpMessageBuilder.setupAllHeaders(module: DevengNetworkingModule) {
-    setupAuthorizationHeader(
-        token = module.getToken()
-    )
+    val token = module.getToken()
+    if (token.isNotBlank()) {
+        setupAuthorizationHeader(token = token)
+    }
 
     if (module.exceptionHandler?.locale != null) {
         setupLocaleHeader(

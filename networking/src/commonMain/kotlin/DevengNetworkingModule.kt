@@ -5,20 +5,24 @@ import error_handling.DevengException
 import error_handling.DevengUiError
 import error_handling.ErrorKey
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
+import networking.csrf.DevengCsrfTokenProvider
 import networking.di.CoreModule
 import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
 import networking.localization.LocalizationManager
+import networking.session.DevengSessionRefresher
 import networking.util.DevengHttpMethod
 import networking.util.buildRequestUrl
 import networking.util.setupAllHeaders
@@ -39,7 +43,13 @@ public data class DevengNetworkingConfig(
     val locale: Locale? = null,
     val customHeaders: Map<String, String> = emptyMap(),
     val socketBaseUrl: String = "",
-    val customErrorMessages: Map<Locale, Map<ErrorKey, String>>? = null
+    val customErrorMessages: Map<Locale, Map<ErrorKey, String>>? = null,
+    val wasmJsIncludeCredentials: Boolean = false,
+    val onUnauthorized: (() -> Unit)? = null,
+    val sessionRefresher: DevengSessionRefresher? = null,
+    val csrfTokenProvider: DevengCsrfTokenProvider? = null,
+    val csrfHeaderName: String = "X-CSRF-TOKEN",
+    val httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null
 )
 
 public class DevengNetworkingModule {
@@ -88,6 +98,10 @@ public class DevengNetworkingModule {
         config = config?.copy(token = newToken)
     }
 
+    public fun notifyUnauthorized() {
+        config?.onUnauthorized?.invoke()
+    }
+
     public suspend inline fun <reified T, reified R> sendRequest(
         endpoint: String,
         requestBody: T? = null,
@@ -133,6 +147,10 @@ public class DevengNetworkingModule {
                 response.status.isSuccess() -> response.body() as R
 
                 else -> {
+                    if (response.status == HttpStatusCode.Unauthorized) {
+                        notifyUnauthorized()
+                    }
+
                     var errorResponse: ErrorResponse? = null
                     try {
                         errorResponse = sharedJson?.decodeFromString<ErrorResponse>(response.body())
@@ -209,6 +227,10 @@ public class DevengNetworkingModule {
                 )
 
                 else -> {
+                    if (response.status == HttpStatusCode.Unauthorized) {
+                        notifyUnauthorized()
+                    }
+
                     var errorResponse: ErrorResponse? = null
                     try {
                         errorResponse =
@@ -283,6 +305,10 @@ public class DevengNetworkingModule {
                 response.status.isSuccess() -> response
 
                 else -> {
+                    if (response.status == HttpStatusCode.Unauthorized) {
+                        notifyUnauthorized()
+                    }
+
                     var errorResponse: ErrorResponse? = null
                     try {
                         errorResponse = sharedJson?.decodeFromString<ErrorResponse>(response.body())
