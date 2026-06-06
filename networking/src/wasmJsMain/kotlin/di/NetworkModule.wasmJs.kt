@@ -2,12 +2,24 @@ package di
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.js.Js
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toJsString
 import networking.DevengNetworkingConfig
 import networking.util.createHttpClient
 
 internal actual object NetworkModule {
+    @OptIn(ExperimentalWasmJsInterop::class)
     actual fun createHttpClient(config: DevengNetworkingConfig): HttpClient {
-        return createHttpClient(Js.create(), config)
+        val engine = if (config.wasmJsIncludeCredentials) {
+            Js.create {
+                configureRequest {
+                    credentials = "include".toJsString()
+                }
+            }
+        } else {
+            Js.create()
+        }
+        return createHttpClient(engine, config)
     }
 }
 
