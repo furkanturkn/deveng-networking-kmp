@@ -59,6 +59,7 @@ public class DevengNetworkingModule {
 
     private var config: DevengNetworkingConfig? = null
     private var restBaseUrl: String = ""
+    private var dynamicHeadersProvider: (() -> Map<String, String>)? = null
 
     // Internal getters for HTTP client configuration
     internal val loggingEnabled: Boolean get() = config?.loggingEnabled ?: true
@@ -101,6 +102,12 @@ public class DevengNetworkingModule {
     public fun notifyUnauthorized() {
         config?.onUnauthorized?.invoke()
     }
+
+    public fun setDynamicHeadersProvider(provider: () -> Map<String, String>) {
+        dynamicHeadersProvider = provider
+    }
+
+    internal fun getDynamicHeaders(): Map<String, String> = dynamicHeadersProvider?.invoke() ?: emptyMap()
 
     public suspend inline fun <reified T, reified R> sendRequest(
         endpoint: String,

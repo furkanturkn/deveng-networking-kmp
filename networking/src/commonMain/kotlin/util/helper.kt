@@ -103,7 +103,7 @@ public fun HttpMessageBuilder.setupAllHeaders(module: DevengNetworkingModule) {
         )
     }
 
-    setupCustomHeaders(module.getCustomHeaders())
+    setupCustomHeaders(module.getCustomHeaders() + module.getDynamicHeaders())
 }
 
 public fun buildRequestUrl(
