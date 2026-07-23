@@ -27,6 +27,9 @@ public class WebSocketConnection private constructor(
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     public val connectionState: StateFlow<ConnectionState> = _connectionState
 
+    public val isConnected: Boolean
+        get() = _connectionState.value is ConnectionState.Connected
+
     private val mutex = Mutex()
     private var isClosing = false
 
