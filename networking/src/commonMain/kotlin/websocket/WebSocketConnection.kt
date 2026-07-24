@@ -146,6 +146,22 @@ public class WebSocketConnection private constructor(
                                     else -> {}
                                 }
                             }
+
+                            // Reaching here means the incoming channel closed on its own
+                            // (remote close or a dropped network) without a Close frame and
+                            // without throwing. Mark the connection as no longer usable so a
+                            // dead session is not reported as connected; otherwise sendMessage
+                            // fails with "Channel was cancelled" and the reconnect logic, which
+                            // skips when isConnected is still true, never runs.
+                            if (!isClosing && _connectionState.value is ConnectionState.Connected) {
+                                onClose?.invoke()
+                                closeSessionInternal()
+                            }
+                        } catch (e: CancellationException) {
+                            // A cancelled incoming channel is a normal teardown/reconnect signal,
+                            // not a network error. Rethrow so the outer handler marks the
+                            // connection as disconnected instead of reporting a spurious error.
+                            throw e
                         } catch (e: Exception) {
                             val handled = exceptionHandler.handleNetworkException(e)
                             _connectionState.value = ConnectionState.Error(handled)
