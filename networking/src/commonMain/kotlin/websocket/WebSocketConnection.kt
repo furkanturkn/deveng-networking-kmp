@@ -37,14 +37,24 @@ public class WebSocketConnection private constructor(
         private var maxConnections: Int = 5
         private val connections = LinkedHashMap<String, WebSocketConnection>()
 
+        // Serializes every mutation of the shared connection registry. Without it, two
+        // concurrent getConnection calls for the same endpoint both see connections[endpoint]
+        // == null and each create a WebSocketConnection, leaving two live sockets for one
+        // endpoint (each has its own instance mutex, so the per-connection guards can't catch
+        // it). The chat SDK triggers exactly that race by connecting from screen init and from
+        // the connection-state observer at nearly the same time.
+        private val managerMutex = Mutex()
+
         public suspend fun setMaxConnections(limit: Int) {
             require(limit > 0) { "Connection limit must be greater than 0" }
-            maxConnections = limit
+            managerMutex.withLock {
+                maxConnections = limit
 
-            while (connections.size > maxConnections) {
-                val oldestEndpoint = connections.keys.first()
-                closeConnection(oldestEndpoint)
-                logDebug(message = "New connection limit applied. Closing oldest connection: $oldestEndpoint")
+                while (connections.size > maxConnections) {
+                    val oldestEndpoint = connections.keys.first()
+                    closeConnectionInternal(oldestEndpoint)
+                    logDebug(message = "New connection limit applied. Closing oldest connection: $oldestEndpoint")
+                }
             }
         }
 
@@ -56,25 +66,38 @@ public class WebSocketConnection private constructor(
             url: String,
             exceptionHandler: ExceptionHandler
         ): WebSocketConnection {
-            connections[endpoint]?.let { return it }
+            return managerMutex.withLock {
+                connections[endpoint]?.let { return@withLock it }
 
-            if (connections.size >= maxConnections) {
-                val oldestEndpoint = connections.keys.first()
-                closeConnection(oldestEndpoint)
-                logDebug(message = "Connection limit reached. Closing oldest connection: $oldestEndpoint")
-            }
+                if (connections.size >= maxConnections) {
+                    val oldestEndpoint = connections.keys.first()
+                    closeConnectionInternal(oldestEndpoint)
+                    logDebug(message = "Connection limit reached. Closing oldest connection: $oldestEndpoint")
+                }
 
-            return WebSocketConnection(client, url, exceptionHandler).also {
-                connections[endpoint] = it
+                WebSocketConnection(client, url, exceptionHandler).also {
+                    connections[endpoint] = it
+                }
             }
         }
 
         public suspend fun closeAll() {
-            connections.values.forEach { it.closeSession() }
-            connections.clear()
+            managerMutex.withLock {
+                connections.values.forEach { it.closeSession() }
+                connections.clear()
+            }
         }
 
         public suspend fun closeConnection(endpoint: String) {
+            managerMutex.withLock {
+                closeConnectionInternal(endpoint)
+            }
+        }
+
+        // Registry mutation without acquiring managerMutex, for callers that already hold it
+        // (the Mutex is not reentrant, so calling closeConnection from within a locked section
+        // would deadlock).
+        private suspend fun closeConnectionInternal(endpoint: String) {
             connections.remove(endpoint)?.closeSession()
         }
 
