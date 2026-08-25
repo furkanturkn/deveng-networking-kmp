@@ -11,6 +11,7 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.plugin
 import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -25,7 +26,8 @@ import networking.session.RefreshGuard
 
 internal fun createHttpClient(
     engine: HttpClientEngine,
-    config: DevengNetworkingConfig = DevengNetworkingConfig()
+    config: DevengNetworkingConfig = DevengNetworkingConfig(),
+    currentAccessToken: () -> String
 ): HttpClient {
     val client = HttpClient(engine) {
         if (config.loggingEnabled) {
@@ -92,7 +94,16 @@ internal fun createHttpClient(
                 }
             }
 
-            if (refreshSucceeded) execute(request) else originalCall
+            if (!refreshSucceeded) {
+                return@intercept originalCall
+            }
+
+            val refreshedToken = currentAccessToken()
+            if (refreshedToken.isNotBlank()) {
+                request.headers[HttpHeaders.Authorization] = "Bearer $refreshedToken"
+            }
+
+            execute(request)
         }
     }
 

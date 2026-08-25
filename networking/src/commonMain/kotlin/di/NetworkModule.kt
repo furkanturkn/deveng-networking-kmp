@@ -4,5 +4,8 @@ import io.ktor.client.HttpClient
 import networking.DevengNetworkingConfig
 
 internal expect object NetworkModule {
-    fun createHttpClient(config: DevengNetworkingConfig): HttpClient
+    fun createHttpClient(
+        config: DevengNetworkingConfig,
+        currentAccessToken: () -> String
+    ): HttpClient
 }
