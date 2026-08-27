@@ -6,7 +6,10 @@ import networking.DevengNetworkingConfig
 import networking.util.createHttpClient
 
 internal actual object NetworkModule {
-    actual fun createHttpClient(config: DevengNetworkingConfig): HttpClient {
-        return createHttpClient(OkHttp.create(), config)
+    actual fun createHttpClient(
+        config: DevengNetworkingConfig,
+        currentAccessToken: () -> String
+    ): HttpClient {
+        return createHttpClient(OkHttp.create(), config, currentAccessToken)
     }
 }

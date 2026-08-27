@@ -75,7 +75,7 @@ public class DevengNetworkingModule {
         this.restBaseUrl = restBaseUrl
 
         client?.close()
-        client = NetworkModule.createHttpClient(config)
+        client = NetworkModule.createHttpClient(config = config, currentAccessToken = ::getToken)
 
         exceptionHandler = CoreModule.exceptionHandler
         sharedJson = CoreModule.sharedJson

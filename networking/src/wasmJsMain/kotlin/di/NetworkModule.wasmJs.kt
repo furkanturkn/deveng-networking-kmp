@@ -9,7 +9,10 @@ import networking.util.createHttpClient
 
 internal actual object NetworkModule {
     @OptIn(ExperimentalWasmJsInterop::class)
-    actual fun createHttpClient(config: DevengNetworkingConfig): HttpClient {
+    actual fun createHttpClient(
+        config: DevengNetworkingConfig,
+        currentAccessToken: () -> String
+    ): HttpClient {
         val engine = if (config.wasmJsIncludeCredentials) {
             Js.create {
                 configureRequest {
@@ -19,7 +22,7 @@ internal actual object NetworkModule {
         } else {
             Js.create()
         }
-        return createHttpClient(engine, config)
+        return createHttpClient(engine, config, currentAccessToken)
     }
 }
 
