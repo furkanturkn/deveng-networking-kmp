@@ -16,12 +16,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import networking.DevengNetworkingConfig
 import networking.csrf.DevengCsrfTokenProvider
 import networking.di.CoreModule
+import networking.session.RefreshCoordinator
 import networking.session.RefreshGuard
 
 internal fun createHttpClient(
@@ -66,14 +64,13 @@ internal fun createHttpClient(
     }
 
     config.sessionRefresher?.let { refresher ->
-        val refreshMutex = Mutex()
-        // Read by subsequent/concurrent intercept invocations via the captured closure;
-        // IDE inspection only sees a single lambda body.
-        @Suppress("AssignedValueIsNeverRead")
-        var refreshGeneration = 0L
+        val refreshCoordinator = RefreshCoordinator(
+            refresher = refresher,
+            refreshTimeoutMillis = config.refreshTimeoutMillis
+        )
 
         client.plugin(HttpSend).intercept { request ->
-            val genAtSend = refreshGeneration
+            val generationAtSend = refreshCoordinator.currentGeneration
             val originalCall = execute(request)
             if (originalCall.response.status != HttpStatusCode.Unauthorized) {
                 return@intercept originalCall
@@ -84,17 +81,7 @@ internal fun createHttpClient(
                 return@intercept originalCall
             }
 
-            val refreshSucceeded = refreshMutex.withLock {
-                if (refreshGeneration != genAtSend) {
-                    true
-                } else {
-                    val success = withContext(RefreshGuard) { refresher.refresh() }
-                    if (success) refreshGeneration++
-                    success
-                }
-            }
-
-            if (!refreshSucceeded) {
+            if (!refreshCoordinator.refresh(generationAtSend)) {
                 return@intercept originalCall
             }
 
