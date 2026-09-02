@@ -1,6 +1,11 @@
 package networking.session
 
+import kotlin.concurrent.Volatile
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Pluggable session-refresh hook called by [networking.DevengNetworkingModule] when a
@@ -22,4 +27,36 @@ public fun interface DevengSessionRefresher {
 internal object RefreshGuard : CoroutineContext.Element {
     override val key: CoroutineContext.Key<*> get() = Key
     internal object Key : CoroutineContext.Key<RefreshGuard>
+}
+
+internal class RefreshCoordinator(
+    private val refresher: DevengSessionRefresher,
+    private val refreshTimeoutMillis: Long
+) {
+    private val mutex = Mutex()
+
+    @Volatile
+    private var generation = 0L
+
+    internal val currentGeneration: Long get() = generation
+
+    internal suspend fun refresh(generationAtSend: Long): Boolean = mutex.withLock {
+        if (generation != generationAtSend) {
+            return@withLock true
+        }
+
+        val succeeded = runGuarded()
+        if (succeeded) {
+            generation++
+        }
+        succeeded
+    }
+
+    private suspend fun runGuarded(): Boolean = withContext(RefreshGuard) {
+        if (refreshTimeoutMillis <= 0) {
+            refresher.refresh()
+        } else {
+            withTimeoutOrNull(refreshTimeoutMillis) { refresher.refresh() } ?: false
+        }
+    }
 }

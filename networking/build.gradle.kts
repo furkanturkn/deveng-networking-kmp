@@ -16,7 +16,11 @@ group = "global.deveng"
 version = generateVersionName()
 
 kotlin {
-    jvm("desktop")
+    jvm("desktop") {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
+    }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {

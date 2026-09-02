@@ -15,6 +15,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlin.concurrent.Volatile
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import networking.csrf.DevengCsrfTokenProvider
@@ -47,6 +48,7 @@ public data class DevengNetworkingConfig(
     val wasmJsIncludeCredentials: Boolean = false,
     val onUnauthorized: (() -> Unit)? = null,
     val sessionRefresher: DevengSessionRefresher? = null,
+    val refreshTimeoutMillis: Long = 30_000L,
     val csrfTokenProvider: DevengCsrfTokenProvider? = null,
     val csrfHeaderName: String = "X-CSRF-TOKEN",
     val httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null
@@ -57,6 +59,7 @@ public class DevengNetworkingModule {
     public var exceptionHandler: ExceptionHandler? = null
     public var sharedJson: Json? = null
 
+    @Volatile
     private var config: DevengNetworkingConfig? = null
     private var restBaseUrl: String = ""
     private var dynamicHeadersProvider: (() -> Map<String, String>)? = null
