@@ -18,8 +18,6 @@ version = generateVersionName()
 kotlin {
     jvm("desktop") {
         compilerOptions {
-            // Pinned so the published bytecode level does not follow whichever JDK ran the build.
-            // Consumers already depend on 21: anything higher breaks their desktop compilation.
             jvmTarget.set(JvmTarget.JVM_21)
         }
     }

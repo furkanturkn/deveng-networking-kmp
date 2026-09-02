@@ -29,13 +29,6 @@ internal object RefreshGuard : CoroutineContext.Element {
     internal object Key : CoroutineContext.Key<RefreshGuard>
 }
 
-/**
- * Serializes [DevengSessionRefresher] invocations so that a burst of 401s triggers a single refresh.
- *
- * [generation] is bumped once per successful refresh. A caller records the generation it saw before
- * sending its request; if the value moved while the request was in flight, someone else already
- * installed a fresh token and the caller can retry without refreshing again.
- */
 internal class RefreshCoordinator(
     private val refresher: DevengSessionRefresher,
     private val refreshTimeoutMillis: Long
@@ -59,11 +52,6 @@ internal class RefreshCoordinator(
         succeeded
     }
 
-    /**
-     * [RefreshGuard] marks the coroutine so the 401 interceptor skips requests issued by the refresh
-     * itself, which would otherwise recurse. The timeout caps how long the mutex is held: without it a
-     * hanging refresh endpoint stalls every other request that hits a 401.
-     */
     private suspend fun runGuarded(): Boolean = withContext(RefreshGuard) {
         if (refreshTimeoutMillis <= 0) {
             refresher.refresh()
