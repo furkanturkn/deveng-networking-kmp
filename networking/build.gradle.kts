@@ -72,6 +72,12 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
         }
 
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.ktor.client.mock)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+
         desktopMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }

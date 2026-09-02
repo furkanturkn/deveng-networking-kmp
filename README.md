@@ -436,23 +436,32 @@ val config = DevengNetworkingConfig(
 
 ### Handling 401 Responses
 
-Two opt-in hooks fire on HTTP 401. `sessionRefresher` runs first and can recover the session transparently by refreshing and retrying the original request; `onUnauthorized` runs only when recovery fails (or isn't configured) and is intended for global UI reactions:
+Two opt-in hooks fire on HTTP 401. `sessionRefresher` runs first and can recover the session transparently by refreshing and retrying the original request; `onUnauthorized` fires for every response that is still 401 after that:
 
 ```kotlin
 val config = DevengNetworkingConfig(
     sessionRefresher = DevengSessionRefresher {
         try {
-            authService.refreshSession()
+            val tokens = authService.refreshSession()
+            devengNetworkingModule.setToken(tokens.accessToken)
             true                                  // Retry the failed request
         } catch (e: Exception) {
             false                                 // Surface UnauthorizedError
         }
     },
-    onUnauthorized = { eventBus.emit(SessionExpired) }
+    onUnauthorized = { eventBus.emit(SessionExpired) },
+    refreshTimeoutMillis = 30_000L                // Optional - defaults to 30s, <= 0 disables it
 )
 ```
 
 Concurrent 401s are deduplicated by a per-client mutex + generation counter, so only one refresh runs even under heavy parallel load. The refresher can issue HTTP calls through the same DNM client without infinite recursion — an internal coroutine-context marker suppresses re-entrance.
+
+A few consequences worth knowing:
+
+- The refresher must call `setToken` itself. The retry reads the current token and rewrites the `Authorization` header, so a refresh that does not publish the new token replays the expired one.
+- `refreshTimeoutMillis` caps a single `refresh()` call. The single-flight lock is held for its duration, so without a timeout a stalled refresh endpoint blocks every other request that hits a 401.
+- Keep the refresh work inside the same suspend call chain. Dispatching it to an unrelated scope (`GlobalScope.launch`, `viewModelScope.launch`) drops the re-entrance marker and lets the refresh request trigger another refresh.
+- `onUnauthorized` fires per failing request, including when no `sessionRefresher` is configured. With several requests in flight it fires several times, so debounce it on the consumer side.
 
 ### Version Catalog Setup
 
