@@ -87,7 +87,7 @@ kotlin {
 }
 
 android {
-    namespace = "global.deveng"
+    namespace = "global.deveng.networking"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
