@@ -24,6 +24,7 @@ import networking.exception_handling.ExceptionHandler
 import networking.localization.Locale
 import networking.localization.LocalizationManager
 import networking.session.DevengSessionRefresher
+import networking.session.RefreshCoordinator
 import networking.util.DevengHttpMethod
 import networking.util.buildRequestUrl
 import networking.util.setupAllHeaders
@@ -61,6 +62,9 @@ public class DevengNetworkingModule {
 
     @Volatile
     private var config: DevengNetworkingConfig? = null
+
+    @Volatile
+    private var refreshCoordinator: RefreshCoordinator? = null
     private var restBaseUrl: String = ""
     private var dynamicHeadersProvider: (() -> Map<String, String>)? = null
 
@@ -77,8 +81,19 @@ public class DevengNetworkingModule {
         this.config = config
         this.restBaseUrl = restBaseUrl
 
+        refreshCoordinator = config.sessionRefresher?.let { refresher ->
+            RefreshCoordinator(
+                refresher = refresher,
+                refreshTimeoutMillis = config.refreshTimeoutMillis
+            )
+        }
+
         client?.close()
-        client = NetworkModule.createHttpClient(config = config, currentAccessToken = ::getToken)
+        client = NetworkModule.createHttpClient(
+            config = config,
+            currentAccessToken = ::getToken,
+            refreshCoordinator = refreshCoordinator
+        )
 
         exceptionHandler = CoreModule.exceptionHandler
         sharedJson = CoreModule.sharedJson
@@ -97,6 +112,20 @@ public class DevengNetworkingModule {
     public fun getSocketBaseUrl(): String = config?.socketBaseUrl ?: ""
     public fun getToken(): String = config?.token ?: ""
     public fun getCustomHeaders(): Map<String, String> = config?.customHeaders ?: emptyMap()
+
+    /**
+     * Renews the session without waiting for a 401, for callers that know the access token is
+     * about to expire — a background upload whose request the OS may run much later, for example.
+     *
+     * It runs through the same single-flight coordinator as the 401 interceptor, so a concurrent
+     * 401 and a proactive call cannot rotate the refresh token twice, and a refresh that is
+     * already in flight is awaited rather than repeated. Returns false when no
+     * [networking.session.DevengSessionRefresher] is configured or the refresh failed.
+     */
+    public suspend fun refreshSession(): Boolean {
+        val coordinator = refreshCoordinator ?: return false
+        return coordinator.refresh(coordinator.currentGeneration)
+    }
 
     public fun setToken(newToken: String) {
         config = config?.copy(token = newToken)
