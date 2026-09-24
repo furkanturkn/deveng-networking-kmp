@@ -40,6 +40,9 @@ internal class RefreshCoordinator(
 
     internal val currentGeneration: Long get() = generation
 
+    internal fun isConfiguredWith(refresher: DevengSessionRefresher, refreshTimeoutMillis: Long): Boolean =
+        this.refresher === refresher && this.refreshTimeoutMillis == refreshTimeoutMillis
+
     internal suspend fun refresh(generationAtSend: Long): Boolean = mutex.withLock {
         if (generation != generationAtSend) {
             return@withLock true
