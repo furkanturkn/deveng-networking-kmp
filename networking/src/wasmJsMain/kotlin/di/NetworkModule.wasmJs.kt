@@ -5,13 +5,15 @@ import io.ktor.client.engine.js.Js
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toJsString
 import networking.DevengNetworkingConfig
+import networking.session.RefreshCoordinator
 import networking.util.createHttpClient
 
 internal actual object NetworkModule {
     @OptIn(ExperimentalWasmJsInterop::class)
     actual fun createHttpClient(
         config: DevengNetworkingConfig,
-        currentAccessToken: () -> String
+        currentAccessToken: () -> String,
+        refreshCoordinator: RefreshCoordinator?
     ): HttpClient {
         val engine = if (config.wasmJsIncludeCredentials) {
             Js.create {
@@ -22,7 +24,7 @@ internal actual object NetworkModule {
         } else {
             Js.create()
         }
-        return createHttpClient(engine, config, currentAccessToken)
+        return createHttpClient(engine, config, currentAccessToken, refreshCoordinator)
     }
 }
 

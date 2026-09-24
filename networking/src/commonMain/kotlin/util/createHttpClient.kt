@@ -25,7 +25,8 @@ import networking.session.RefreshGuard
 internal fun createHttpClient(
     engine: HttpClientEngine,
     config: DevengNetworkingConfig = DevengNetworkingConfig(),
-    currentAccessToken: () -> String
+    currentAccessToken: () -> String,
+    refreshCoordinator: RefreshCoordinator? = null
 ): HttpClient {
     val client = HttpClient(engine) {
         if (config.loggingEnabled) {
@@ -52,7 +53,7 @@ internal fun createHttpClient(
 
         install(WebSockets)
 
-        if (config.sessionRefresher != null) {
+        if (refreshCoordinator != null) {
             install(HttpSend)
         }
 
@@ -63,14 +64,9 @@ internal fun createHttpClient(
         config.httpClientConfig?.invoke(this)
     }
 
-    config.sessionRefresher?.let { refresher ->
-        val refreshCoordinator = RefreshCoordinator(
-            refresher = refresher,
-            refreshTimeoutMillis = config.refreshTimeoutMillis
-        )
-
+    refreshCoordinator?.let { coordinator ->
         client.plugin(HttpSend).intercept { request ->
-            val generationAtSend = refreshCoordinator.currentGeneration
+            val generationAtSend = coordinator.currentGeneration
             val originalCall = execute(request)
             if (originalCall.response.status != HttpStatusCode.Unauthorized) {
                 return@intercept originalCall
@@ -81,7 +77,7 @@ internal fun createHttpClient(
                 return@intercept originalCall
             }
 
-            if (!refreshCoordinator.refresh(generationAtSend)) {
+            if (!coordinator.refresh(generationAtSend)) {
                 return@intercept originalCall
             }
 
