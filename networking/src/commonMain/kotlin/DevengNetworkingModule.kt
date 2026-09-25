@@ -81,11 +81,18 @@ public class DevengNetworkingModule {
         this.config = config
         this.restBaseUrl = restBaseUrl
 
+        // A re-initialisation — a background worker in the same process, for example — must keep the
+        // coordinator a refresh may be in flight on. A fresh one would let both present the same
+        // refresh token, and the rotation the backend rejects signs the user out.
         refreshCoordinator = config.sessionRefresher?.let { refresher ->
-            RefreshCoordinator(
-                refresher = refresher,
-                refreshTimeoutMillis = config.refreshTimeoutMillis
-            )
+            refreshCoordinator
+                ?.takeIf { existingCoordinator ->
+                    existingCoordinator.isConfiguredWith(refresher, config.refreshTimeoutMillis)
+                }
+                ?: RefreshCoordinator(
+                    refresher = refresher,
+                    refreshTimeoutMillis = config.refreshTimeoutMillis
+                )
         }
 
         client?.close()
