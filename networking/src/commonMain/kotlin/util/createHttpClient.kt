@@ -21,6 +21,7 @@ import networking.csrf.DevengCsrfTokenProvider
 import networking.di.CoreModule
 import networking.session.RefreshCoordinator
 import networking.session.RefreshGuard
+import networking.session.isExcludedFromSessionRefresh
 
 internal fun createHttpClient(
     engine: HttpClientEngine,
@@ -69,6 +70,10 @@ internal fun createHttpClient(
             val generationAtSend = coordinator.currentGeneration
             val originalCall = execute(request)
             if (originalCall.response.status != HttpStatusCode.Unauthorized) {
+                return@intercept originalCall
+            }
+
+            if (request.isExcludedFromSessionRefresh()) {
                 return@intercept originalCall
             }
 

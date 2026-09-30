@@ -27,7 +27,7 @@ import networking.session.DevengSessionRefresher
 import networking.session.RefreshCoordinator
 import networking.util.DevengHttpMethod
 import networking.util.buildRequestUrl
-import networking.util.setupAllHeaders
+import networking.session.excludeFromSessionRefresh
 import networking.util.createMultipartContent
 import networking.util.logDebug
 import networking.util.setupAllHeaders
@@ -158,7 +158,9 @@ public class DevengNetworkingModule {
         fileName: String? = null,
         fileContent: ByteArray? = null,
         fileFieldName: String = "File",
-        additionalFormFields: Map<String, String>? = null
+        additionalFormFields: Map<String, String>? = null,
+        requestHeaders: Map<String, String>? = null,
+        isSessionAuthenticated: Boolean = true
     ): R {
         return try {
             if (client == null) {
@@ -170,7 +172,14 @@ public class DevengNetworkingModule {
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
-                setupAllHeaders(this@DevengNetworkingModule)
+                setupAllHeaders(
+                    module = this@DevengNetworkingModule,
+                    requestHeaders = requestHeaders,
+                    isSessionAuthenticated = isSessionAuthenticated
+                )
+                if (!isSessionAuthenticated) {
+                    excludeFromSessionRefresh()
+                }
 
                 setupQueryParameters(queryParameters)
 
@@ -193,7 +202,7 @@ public class DevengNetworkingModule {
                 response.status.isSuccess() -> response.body() as R
 
                 else -> {
-                    if (response.status == HttpStatusCode.Unauthorized) {
+                    if (response.status == HttpStatusCode.Unauthorized && isSessionAuthenticated) {
                         notifyUnauthorized()
                     }
 
@@ -235,7 +244,9 @@ public class DevengNetworkingModule {
         fileName: String? = null,
         fileContent: ByteArray? = null,
         fileFieldName: String = "File",
-        additionalFormFields: Map<String, String>? = null
+        additionalFormFields: Map<String, String>? = null,
+        requestHeaders: Map<String, String>? = null,
+        isSessionAuthenticated: Boolean = true
     ): R {
         if (client == null) {
             throw (IllegalStateException("Client is not initialized"))
@@ -247,7 +258,14 @@ public class DevengNetworkingModule {
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
-                setupAllHeaders(this@DevengNetworkingModule)
+                setupAllHeaders(
+                    module = this@DevengNetworkingModule,
+                    requestHeaders = requestHeaders,
+                    isSessionAuthenticated = isSessionAuthenticated
+                )
+                if (!isSessionAuthenticated) {
+                    excludeFromSessionRefresh()
+                }
 
                 setupQueryParameters(queryParameters)
 
@@ -273,7 +291,7 @@ public class DevengNetworkingModule {
                 )
 
                 else -> {
-                    if (response.status == HttpStatusCode.Unauthorized) {
+                    if (response.status == HttpStatusCode.Unauthorized && isSessionAuthenticated) {
                         notifyUnauthorized()
                     }
 
@@ -316,7 +334,9 @@ public class DevengNetworkingModule {
         fileName: String? = null,
         fileContent: ByteArray? = null,
         fileFieldName: String = "File",
-        additionalFormFields: Map<String, String>? = null
+        additionalFormFields: Map<String, String>? = null,
+        requestHeaders: Map<String, String>? = null,
+        isSessionAuthenticated: Boolean = true
     ): HttpResponse {
         if (client == null) {
             throw (IllegalStateException("Client is not initialized"))
@@ -328,7 +348,14 @@ public class DevengNetworkingModule {
             ) {
                 method = requestMethod.toKtorHttpMethod()
 
-                setupAllHeaders(this@DevengNetworkingModule)
+                setupAllHeaders(
+                    module = this@DevengNetworkingModule,
+                    requestHeaders = requestHeaders,
+                    isSessionAuthenticated = isSessionAuthenticated
+                )
+                if (!isSessionAuthenticated) {
+                    excludeFromSessionRefresh()
+                }
 
                 setupQueryParameters(queryParameters)
 
@@ -351,7 +378,7 @@ public class DevengNetworkingModule {
                 response.status.isSuccess() -> response
 
                 else -> {
-                    if (response.status == HttpStatusCode.Unauthorized) {
+                    if (response.status == HttpStatusCode.Unauthorized && isSessionAuthenticated) {
                         notifyUnauthorized()
                     }
 

@@ -463,6 +463,21 @@ A few consequences worth knowing:
 - Keep the refresh work inside the same suspend call chain. Dispatching it to an unrelated scope (`GlobalScope.launch`, `viewModelScope.launch`) drops the re-entrance marker and lets the refresh request trigger another refresh.
 - `onUnauthorized` fires per failing request, including when no `sessionRefresher` is configured. With several requests in flight it fires several times, so debounce it on the consumer side.
 
+### Per-Request Headers and Requests Outside the Session
+
+`requestHeaders` adds headers to a single request; they win over `customHeaders` and the dynamic headers with the same name. A request with `isSessionAuthenticated = false` carries no `Authorization` header, and its 401 neither runs `sessionRefresher` nor fires `onUnauthorized` — for endpoints that authenticate with their own credential, where a 401 says nothing about the user's session:
+
+```kotlin
+val latestWidget = devengNetworkingModule.sendRequest<Unit, LatestWidgetResponse>(
+    endpoint = "widgets/home-screen/latest",
+    requestMethod = DevengHttpMethod.GET,
+    requestHeaders = mapOf("X-Widget-Token" to widgetToken),
+    isSessionAuthenticated = false
+)
+```
+
+A raw Ktor call on `client` can opt out of the refresh the same way with `excludeFromSessionRefresh()` inside its request builder.
+
 ### Version Catalog Setup
 
 Add to `libs.versions.toml`:
