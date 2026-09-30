@@ -217,7 +217,10 @@ public class DevengNetworkingModule {
                         errorMessage = errorResponse?.message,
                         status = response.status
                     )
-                    throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
+                    throw DevengException(
+                        error = error ?: DevengUiError.UnknownError("Unknown error"),
+                        statusCode = response.status.value
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -310,7 +313,10 @@ public class DevengNetworkingModule {
                         errorMessage = errorResponse?.message,
                         status = response.status
                     )
-                    throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
+                    throw DevengException(
+                        error = error ?: DevengUiError.UnknownError("Unknown error"),
+                        statusCode = response.status.value
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -393,7 +399,10 @@ public class DevengNetworkingModule {
                         errorMessage = errorResponse?.message,
                         status = response.status
                     )
-                    throw DevengException(error ?: DevengUiError.UnknownError("Unknown error"))
+                    throw DevengException(
+                        error = error ?: DevengUiError.UnknownError("Unknown error"),
+                        statusCode = response.status.value
+                    )
                 }
             }
         } catch (e: Exception) {
