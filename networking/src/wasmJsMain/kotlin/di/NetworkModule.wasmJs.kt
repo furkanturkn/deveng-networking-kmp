@@ -6,6 +6,7 @@ import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toJsString
 import networking.DevengNetworkingConfig
 import networking.session.RefreshCoordinator
+import networking.util.buildBrowserTransportFailurePlugin
 import networking.util.createHttpClient
 
 internal actual object NetworkModule {
@@ -24,7 +25,9 @@ internal actual object NetworkModule {
         } else {
             Js.create()
         }
-        return createHttpClient(engine, config, currentAccessToken, refreshCoordinator)
+        return createHttpClient(engine, config, currentAccessToken, refreshCoordinator) {
+            install(buildBrowserTransportFailurePlugin())
+        }
     }
 }
 
