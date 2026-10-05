@@ -91,9 +91,18 @@ public fun HttpMessageBuilder.setupCustomHeaders(customHeaders: Map<String, Stri
     }
 }
 
-public fun HttpMessageBuilder.setupAllHeaders(module: DevengNetworkingModule) {
+/**
+ * Sets the headers of one request. [requestHeaders] apply to this request only and win over the
+ * module's custom and dynamic headers with the same name. A request that is not
+ * [isSessionAuthenticated] carries no session token, for endpoints that authenticate some other way.
+ */
+public fun HttpMessageBuilder.setupAllHeaders(
+    module: DevengNetworkingModule,
+    requestHeaders: Map<String, String>? = null,
+    isSessionAuthenticated: Boolean = true
+) {
     val token = module.getToken()
-    if (token.isNotBlank()) {
+    if (isSessionAuthenticated && token.isNotBlank()) {
         setupAuthorizationHeader(token = token)
     }
 
@@ -103,7 +112,7 @@ public fun HttpMessageBuilder.setupAllHeaders(module: DevengNetworkingModule) {
         )
     }
 
-    setupCustomHeaders(module.getCustomHeaders() + module.getDynamicHeaders())
+    setupCustomHeaders(module.getCustomHeaders() + module.getDynamicHeaders() + requestHeaders.orEmpty())
 }
 
 public fun buildRequestUrl(

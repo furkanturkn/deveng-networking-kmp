@@ -34,4 +34,12 @@ public sealed class DevengUiError(errorMessage: String) : Throwable(errorMessage
     }
 }
 
-public class DevengException(error: DevengUiError) : Exception(error.message, error)
+/**
+ * [statusCode] is the HTTP status of a response the server rejected; null when no response arrived
+ * (network failure). The server's error message replaces the typed [DevengUiError], so the status is
+ * the reliable way to tell, for example, a 401 apart.
+ */
+public class DevengException(
+    error: DevengUiError,
+    public val statusCode: Int? = null
+) : Exception(error.message, error)
