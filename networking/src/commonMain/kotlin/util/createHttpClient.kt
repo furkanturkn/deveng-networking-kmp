@@ -1,6 +1,7 @@
 package networking.util
 
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.HttpTimeout
@@ -27,9 +28,12 @@ internal fun createHttpClient(
     engine: HttpClientEngine,
     config: DevengNetworkingConfig = DevengNetworkingConfig(),
     currentAccessToken: () -> String,
-    refreshCoordinator: RefreshCoordinator? = null
+    refreshCoordinator: RefreshCoordinator? = null,
+    platformClientConfig: HttpClientConfig<*>.() -> Unit = {}
 ): HttpClient {
     val client = HttpClient(engine) {
+        platformClientConfig()
+
         if (config.loggingEnabled) {
             install(Logging) {
                 logger = object : Logger {
