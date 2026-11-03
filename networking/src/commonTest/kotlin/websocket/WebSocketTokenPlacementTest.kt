@@ -2,6 +2,7 @@ package websocket
 
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.http.HttpHeaders
+import io.ktor.http.takeFrom
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
