@@ -28,7 +28,7 @@ class WebSocketTokenPlacementTest {
 
         assertEquals(ACCESS_TOKEN, requestBuilder.url.parameters[ACCESS_TOKEN_QUERY_KEY])
         assertFalse(requestBuilder.headers.contains(HttpHeaders.Authorization))
-        assertEquals("wss://chat.example.test/ws?$ACCESS_TOKEN_QUERY_KEY=$ACCESS_TOKEN", requestBuilder.url.buildString())
+        assertEquals("$WEB_SOCKET_URL?$ACCESS_TOKEN_QUERY_KEY=$ACCESS_TOKEN", requestBuilder.url.buildString())
     }
 
     @Test

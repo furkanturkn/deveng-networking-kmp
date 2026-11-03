@@ -41,6 +41,7 @@ class WebSocketConnectionTokenTest {
             onMessageReceived = {},
             onError = {}
         )
+
         val handshake = withContext(Dispatchers.Default) {
             withTimeout(HANDSHAKE_TIMEOUT_MILLIS) { sentHandshake.await() }
         }
@@ -69,6 +70,7 @@ class WebSocketConnectionTokenTest {
                 )
             }
         }
+
         return HttpClient(MockEngine { respondError(HttpStatusCode.Unauthorized) }) {
             install(WebSockets)
             install(handshakeRecorder)
