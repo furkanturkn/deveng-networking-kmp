@@ -1,0 +1,3 @@
+package websocket
+
+internal actual val platformWebSocketTokenPlacement: WebSocketTokenPlacement = WebSocketTokenPlacement.AUTHORIZATION_HEADER

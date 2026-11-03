@@ -136,9 +136,7 @@ public class WebSocketConnection private constructor(
             connectionJob = scope.launch {
                 try {
                     client.webSocket(urlString = url, request = {
-                        if (token.isNotBlank()) {
-                            headers.append("Authorization", "Bearer $token")
-                        }
+                        applyWebSocketToken(token, platformWebSocketTokenPlacement)
                     }) {
                         session = this
                         try {
