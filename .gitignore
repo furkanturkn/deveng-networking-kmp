@@ -312,3 +312,11 @@ obj/
 
 gradle.properties
 # End of
+
+# pinq-doq copies, written by the pinqdoq CLI
+/.pinq-doq
+/.pinq-doq.*
+/.claude/rules/
+/.claude/skills/pinq_*/
+/.claude/skills/.pinq-doq-skills
+/.claude/.pinq-doq-version
